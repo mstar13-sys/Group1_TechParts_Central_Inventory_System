@@ -1,0 +1,17 @@
+/* ============================================================
+   dashboard.css — Dashboard page styles
+   ============================================================ */
+
+/* Quick-action buttons row */
+.dashboard-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+}
+
+/* Recent activity / top-products tables sit inside .card — no extra styles needed */
+
+/* Low-stock warning row highlight */
+.row-low-stock td { color: var(--warning); }
+.row-out-stock td { color: var(--danger); }
