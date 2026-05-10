@@ -1,44 +1,56 @@
 <?php
-// login.php
-require_once __DIR__ . '/includes/config.php';
-if (session_status() === PHP_SESSION_NONE) {
-  session_start();
+session_start();
+require_once 'includes/config.php';
+
+// If already logged in, go straight to dashboard
+if (!empty($_SESSION['logged_in'])) {
+    header('Location: dashboard.php');
+    exit();
 }
 
-if (!empty($_SESSION['user_id'])) {
-  header('Location: /dashboard.php');
-  exit;
-}
+$login_error = '';
 
-$error = '';
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-  $email    = trim($_POST['email'] ?? '');
-  $password = $_POST['password'] ?? '';
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
 
-  if ($email && $password) {
-    try {
-      $db   = getDB();
-      $stmt = $db->prepare('SELECT ID, Name, Role, Password FROM User WHERE Email = ? AND IsActive = 1 LIMIT 1');
-      $stmt->execute([$email]);
-      $user = $stmt->fetch();
+    $email    = trim($_POST['email']    ?? '');
+    $password = trim($_POST['password'] ?? '');
 
-      if ($user && password_verify($password, $user['Password'])) {
-        session_regenerate_id(true);
-        $_SESSION['user_id']   = $user['ID'];
-        $_SESSION['user_name'] = $user['Name'];
-        $_SESSION['role']      = $user['Role'];
-        header('Location: /dashboard.php');
-        exit;
-      }
-      $error = 'Invalid email or password.  ';
-      
-    } catch (PDOException $e) {
-      error_log("Login Error: " . $e->getMessage());
-      $error = 'Database connection error. Please try again later.';
+    if (empty($email) || empty($password)) {
+        $login_error = 'Please enter your email and password.';
+    } else {
+        try {
+            $db  = new Database();
+            $pdo = $db->getConnection(); // FIX: was never called before
+
+            // FIX: column is Email, not username. Table is User (capital U)
+            $stmt = $pdo->prepare('SELECT * FROM User WHERE Email = :email AND IsActive = 1 LIMIT 1');
+            $stmt->execute([':email' => $email]);
+
+            if ($stmt->rowCount() > 0) {
+                $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+                // FIX: use password_verify() — passwords in DB are bcrypt hashed
+                if (password_verify($password, $user['Password'])) {
+                    session_regenerate_id(true);
+                    $_SESSION['logged_in'] = true;
+                    $_SESSION['user_id']   = $user['ID'];
+                    $_SESSION['name']      = $user['Name'];
+                    $_SESSION['email']     = $user['Email'];
+                    $_SESSION['role']      = $user['Role'];
+                    header('Location: dashboard.php');
+                    exit();
+                } else {
+                    $login_error = 'Invalid email or password.';
+                }
+            } else {
+                $login_error = 'Invalid email or password.';
+            }
+
+        } catch (PDOException $e) {
+            error_log('Login error: ' . $e->getMessage());
+            $login_error = 'A database error occurred. Please try again later.';
+        }
     }
-  } else {
-    $error = 'Please fill in all fields.';
-  }
 }
 ?>
 
@@ -47,7 +59,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>IM ComParts | Login</title>
+<title>TechGear | Login</title>
 <style>
     * {
         margin: 0;
@@ -95,11 +107,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         justify-content: center;
         align-items: center;
         margin-bottom: 20px;
+        overflow: hidden;
     }
 
-    .logo-box svg {
-        width: 42px;
-        height: 42px;
+    .logo-box img {
+        width: 80px;
+        height: 80px;
+        object-fit: cover;
     }
 
     .left-side h1 {
@@ -235,98 +249,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     @media (max-width: 768px) {
-    body {
-        padding: 40px 30px;
+        body { padding: 40px 30px; }
+        .login-box { flex-direction: column; width: 420px; height: auto; margin: auto; }
+        .left-side { width: 100%; padding: 36px 30px; border-right: none; border-bottom: 1px solid rgba(0, 255, 255, 0.15); }
+        .right-side { width: 100%; padding: 36px; }
     }
-
-    .login-box {
-        flex-direction: column;
-        width: 420px;
-        height: auto;
-        margin: auto;
-    }
-
-    .left-side {
-        width: 100%;
-        padding: 36px 30px;
-        border-right: none;
-        border-bottom: 1px solid rgba(0, 255, 255, 0.15);
-    }
-
-    .right-side {
-        width: 100%;
-        padding: 36px 36px;
-    }
-}
 
     @media (max-width: 600px) {
-    body {
-        padding: 16px;
+        body { padding: 16px; }
+        .login-box { width: 100%; max-width: 400px; height: auto; }
+        .left-side { padding: 20px 24px; }
+        .logo-box { width: 55px; height: 55px; margin-bottom: 10px; }
+        .logo-box img { width: 55px; }
+        .left-side h1 { font-size: 20px; margin-bottom: 4px; }
+        .left-side p { font-size: 10px; margin-bottom: 0; }
+        .left-side small { display: none; }
+        .right-side { padding: 24px; }
+        .right-side h2 { font-size: 22px; margin-bottom: 18px; }
+        .input-group { margin-bottom: 12px; }
+        .input-group input { height: 42px; }
+        .options { margin: 4px 0 16px; }
+        .login-btn { height: 42px; font-size: 15px; }
+        .create { margin-top: 14px; }
     }
-
-    .login-box {
-        width: 100%;
-        max-width: 400px;
-        height: auto;
-    }
-
-    .left-side {
-        padding: 20px 24px;
-    }
-
-    .left-side .logo-box {
-        width: 55px;
-        height: 55px;
-        margin-bottom: 10px;
-    }
-
-    .left-side .logo-box img {
-        width: 55px;
-    }
-
-    .left-side h1 {
-        font-size: 20px;
-        margin-bottom: 4px;
-    }
-
-    .left-side p {
-        font-size: 10px;
-        margin-bottom: 0;
-    }
-
-    .left-side small {
-        display: none;
-    }
-
-    .right-side {
-        padding: 24px 24px;
-    }
-
-    .right-side h2 {
-        font-size: 22px;
-        margin-bottom: 18px;
-    }
-
-    .input-group {
-        margin-bottom: 12px;
-    }
-
-    .input-group input {
-        height: 42px;
-    }
-
-    .options {
-        margin: 4px 0 16px;
-    }
-
-    .login-btn {
-        height: 42px;
-        font-size: 15px;
-    }
-
-    .create {
-        margin-top: 14px;
-    }}
 </style>
 </head>
 
@@ -336,15 +281,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         <!-- LEFT SIDE -->
         <div class="left-side">
-
             <div class="logo-box">
                 <img src="logo.png" alt="Logo" width="80">
             </div>
-
-            <h1><span>Tech</span>Parts</h1>
-            <p>Inventory & POS System</p>
-            <small>Manage computer parts inventory and sales in one place.</small>
-
+            <h1>Tech<span>Gear</span></h1>
+            <p>Inventory Management</p>
+            <small>Track and manage your computer parts inventory in one place.</small>
         </div>
 
         <!-- RIGHT SIDE -->
@@ -352,29 +294,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             <h2>Login</h2>
 
-            <?php if (!empty($error)): ?>
-            <div class="error">⚠ <?= htmlspecialchars($error) ?></div>
+            <?php if (!empty($login_error)): ?>
+            <div class="error">⚠ <?= htmlspecialchars($login_error) ?></div>
             <?php endif; ?>
 
             <form method="POST" action="">
 
                 <div class="input-group">
-                    <input type="email" name="email" placeholder="Email address" value="<?= htmlspecialchars($_POST['email'] ?? '') ?>" required autofocus>
+                    <!-- Changed from username to email (matches the DB column) -->
+                    <input type="email" name="email" placeholder="Email address"
+                           value="<?= htmlspecialchars($_POST['email'] ?? '') ?>">
                 </div>
 
                 <div class="input-group">
-                    <input type="password" name="password" placeholder="Password" required>
+                    <input type="password" name="password" placeholder="Password">
                 </div>
 
-                <button class="login-btn" type="submit">Login →</button>
+                <div class="options">
+                    <a href="forgot_password.php">Forgot Password?</a>
+                </div>
+
+                <button class="login-btn" type="submit" name="login">Login</button>
 
             </form>
-
-            <div style="margin-top: 20px; padding: 14px; background: rgba(0, 229, 255, 0.08); border: 1px solid rgba(0, 229, 255, 0.2); border-radius: 8px; font-size: 12px; color: rgba(255, 255, 255, 0.7); line-height: 1.6;">
-              <strong style="color: #00e5ff; display: block; margin-bottom: 6px;">Demo Credentials</strong>
-              <div>Admin: admin@techparts.com</div>
-              <div>Password: Admin123</div>
-            </div>
 
         </div>
 
