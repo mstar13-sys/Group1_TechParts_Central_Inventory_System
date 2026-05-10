@@ -1,0 +1,19 @@
+/* ============================================================
+   users.css — Users management page styles
+   ============================================================ */
+
+/* Avatar initial circle */
+.user-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--surface3);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--accent);
+  margin-right: 8px;
+  flex-shrink: 0;
+}

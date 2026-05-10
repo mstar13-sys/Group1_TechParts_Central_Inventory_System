@@ -1,6 +1,6 @@
-<?php
-// includes/footer.php — include at the bottom of every page
-?>
-</div><!-- /.main -->
+<?php // /includes/footer.php ?>
+</div><!-- .page-body -->
+</main>
+<script src="/js/app.js"></script>
 </body>
 </html>

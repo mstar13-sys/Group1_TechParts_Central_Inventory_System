@@ -1,0 +1,7 @@
+/* ============================================================
+   categories.css — Categories page styles
+   ============================================================ */
+
+/* Category status toggle visual */
+.status-active   { color: var(--accent3); font-weight: 600; }
+.status-inactive { color: var(--text-muted); }

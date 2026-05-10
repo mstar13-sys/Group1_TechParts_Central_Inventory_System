@@ -1,0 +1,12 @@
+/* ============================================================
+   transactions.css — Sale Transactions page styles
+   ============================================================ */
+
+/* Transaction detail sub-table inside the expand row */
+.tx-detail-row td { padding: 0; }
+.tx-detail-inner {
+  padding: 12px 20px;
+  background: var(--surface2);
+  border-bottom: 1px solid var(--border);
+}
+.tx-items-table { margin-top: 8px; font-size: 12.5px; }

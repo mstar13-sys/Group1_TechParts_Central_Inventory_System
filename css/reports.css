@@ -1,0 +1,21 @@
+/* ============================================================
+   reports.css — Reports page styles
+   ============================================================ */
+
+/* Date-range filter bar */
+.report-filters {
+  display: flex;
+  gap: 12px;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+.report-filters .form-group { margin-bottom: 0; }
+
+/* Chart placeholder / summary number */
+.report-big-num {
+  font-family: 'Syne', sans-serif;
+  font-size: 36px;
+  font-weight: 800;
+  color: var(--accent);
+}
