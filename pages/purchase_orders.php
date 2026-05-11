@@ -1,6 +1,6 @@
 <?php
 // pages/purchase_orders.php
-require_once __DIR__ . '/../includes/config.php';
+require_once '../includes/config.php';
 requireLogin();
 $pageTitle = 'Purchase Orders';
 $db = getDB();
@@ -111,9 +111,9 @@ $poList = $pos->fetchAll();
 $suppliers = $db->query("SELECT * FROM Supplier WHERE IsActive=1 ORDER BY Name")->fetchAll();
 $products  = $db->query("SELECT p.ID,p.Name,p.Brand,p.Price FROM Product p ORDER BY p.Name")->fetchAll();
 
-include __DIR__ . '/../includes/header.php';
+include '../includes/header.php';
 ?>
-<link rel="stylesheet" href="<?= APP_ROOT ?>/css/purchase_orders.css">
+<link rel="stylesheet" href="../css/purchase_orders.css">
 <?php
 ?>
 
