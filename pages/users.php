@@ -45,9 +45,18 @@ if ($_SERVER['REQUEST_METHOD']==='POST') {
     }
 }
 
-$users = $db->query("SELECT *, (SELECT COUNT(*) FROM Transaction WHERE Cashier_ID=User.ID) AS TxnCount FROM User ORDER BY Role,Name")->fetchAll();
+$users = $db->query("
+    SELECT u.*, COUNT(t.ID) AS TxnCount
+    FROM User u
+    LEFT JOIN Transaction t ON t.Cashier_ID = u.ID
+    GROUP BY u.ID
+    ORDER BY u.Role, u.Name
+")->fetchAll();
 
 include __DIR__ . '/../includes/header.php';
+?>
+<link rel="stylesheet" href="/css/users.css">
+<?php
 ?>
 
 <?php if($msg):?><div class="alert alert-<?=$msgType?>"><?=htmlspecialchars($msg)?></div><?php endif;?>
@@ -77,7 +86,7 @@ include __DIR__ . '/../includes/header.php';
         <td style="color:var(--text-muted);font-size:12px"><?=date('M d, Y',strtotime($u['CreatedAt']))?></td>
         <td><span class="badge badge-<?=$u['IsActive']?'green':'red'?>"><?=$u['IsActive']?'Active':'Inactive'?></span></td>
         <td style="display:flex;gap:6px">
-          <button class="btn btn-ghost btn-sm" onclick='editUser(<?=json_encode($u)?>')'>Edit</button>
+          <button class="btn btn-ghost btn-sm" onclick='editUser(<?=json_encode($u, JSON_HEX_APOS|JSON_HEX_TAG)?>)'>Edit</button>
           <?php if($u['ID']!=$_SESSION['user_id']):?>
           <form method="POST">
             <input type="hidden" name="action" value="toggle">

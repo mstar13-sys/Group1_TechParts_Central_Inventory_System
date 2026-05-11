@@ -42,6 +42,9 @@ $cashierPerf->execute([$from,$to]); $cashiers = $cashierPerf->fetchAll();
 
 include __DIR__ . '/../includes/header.php';
 ?>
+<link rel="stylesheet" href="/css/reports.css">
+<?php
+?>
 
 <!-- Date range filter -->
 <div class="card">
