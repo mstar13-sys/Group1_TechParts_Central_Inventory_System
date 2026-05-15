@@ -12,8 +12,20 @@ $totalSuppliers = $db->query('SELECT COUNT(*) FROM Supplier WHERE IsActive=1')->
 $todaySales     = $db->query("SELECT COALESCE(SUM(TotalAmount),0) FROM Transaction WHERE DATE(TransactionDate)=CURDATE() AND Status='Completed'")->fetchColumn();
 $monthSales     = $db->query("SELECT COALESCE(SUM(TotalAmount),0) FROM Transaction WHERE YEAR(TransactionDate)=YEAR(CURDATE()) AND MONTH(TransactionDate)=MONTH(CURDATE()) AND Status='Completed'")->fetchColumn();
 $pendingPOs     = $db->query("SELECT COUNT(*) FROM PurchaseOrder WHERE Status IN ('Pending','Approved','Ordered')")->fetchColumn();
-// Single query for stock alerts
-$stockAlerts    = $db->query('SELECT SUM(Quantity<=MinStock AND Quantity>0) AS low_stock, SUM(Quantity=0) AS out_of_stock FROM Stock')->fetch();
+// Count alerts per product, including products without a Stock row.
+$stockAlerts = $db->query("
+    SELECT
+      SUM(stock_qty > 0 AND stock_qty <= min_stock) AS low_stock,
+      SUM(stock_qty = 0) AS out_of_stock
+    FROM (
+      SELECT p.ID,
+             COALESCE(SUM(s.Quantity), 0) AS stock_qty,
+             COALESCE(MAX(s.MinStock), 5) AS min_stock
+      FROM Product p
+      LEFT JOIN Stock s ON s.Product_ID = p.ID
+      GROUP BY p.ID
+    ) product_stock
+")->fetch();
 $lowStock       = (int)$stockAlerts['low_stock'];
 $outOfStock     = (int)$stockAlerts['out_of_stock'];
 

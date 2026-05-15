@@ -1,12 +1,147 @@
-/* ============================================================
-   transactions.css — Sale Transactions page styles
-   ============================================================ */
+/* Sale transaction history page */
 
-/* Transaction detail sub-table inside the expand row */
-.tx-detail-row td { padding: 0; }
-.tx-detail-inner {
-  padding: 12px 20px;
-  background: var(--surface2);
-  border-bottom: 1px solid var(--border);
+.tx-filter-grid {
+  display: grid;
+  grid-template-columns: minmax(240px, 2fr) repeat(3, minmax(140px, 1fr)) auto;
+  gap: 12px;
+  align-items: start;
 }
-.tx-items-table { margin-top: 8px; font-size: 12.5px; }
+
+.tx-filter-grid .form-group {
+  margin: 0;
+}
+
+.tx-filter-grid .btn {
+  height: 40px;
+  justify-content: center;
+}
+
+.tx-card {
+  padding: 0;
+  overflow: hidden;
+}
+
+.tx-card .card-title {
+  padding: 20px 20px 0;
+}
+
+.tx-table-wrap {
+  padding: 0 20px 20px;
+}
+
+.tx-table {
+  min-width: 980px;
+}
+
+.tx-table tbody td {
+  vertical-align: middle;
+}
+
+.tx-number {
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  color: var(--accent);
+  white-space: nowrap;
+}
+
+.tx-muted,
+.tx-date {
+  color: var(--text-muted);
+}
+
+.tx-date {
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.tx-amount {
+  color: var(--accent3);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.tx-actions {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  white-space: nowrap;
+}
+
+.tx-actions form {
+  margin: 0;
+}
+
+.tx-empty {
+  text-align: center;
+  color: var(--text-muted);
+  padding: 30px;
+}
+
+.tx-pagination {
+  padding: 0 20px 20px;
+}
+
+.tx-modal {
+  width: min(760px, 95vw);
+}
+
+.tx-detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 16px;
+  font-size: 13px;
+}
+
+.tx-detail-grid span {
+  display: block;
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  margin-bottom: 2px;
+}
+
+.tx-items-table {
+  margin-top: 8px;
+  font-size: 12.5px;
+}
+
+.tx-total-box {
+  margin-top: 14px;
+  text-align: right;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.tx-total-box strong {
+  display: block;
+  font-family: 'Syne', sans-serif;
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--accent);
+  margin-top: 4px;
+}
+
+.tx-change {
+  color: var(--accent3);
+}
+
+@media (max-width: 900px) {
+  .tx-filter-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .tx-filter-grid .btn {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 560px) {
+
+  .tx-filter-grid,
+  .tx-detail-grid {
+    grid-template-columns: 1fr;
+  }
+}

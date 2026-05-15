@@ -11,18 +11,26 @@ $page = basename($_SERVER['PHP_SELF'], '.php');
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title><?= htmlspecialchars($pageTitle ?? APP_NAME) ?></title>
   <link rel="stylesheet" href="/css/style.css">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
-<script>
-  // These must load before any inline page scripts that call them
-  function openModal(id)  { document.getElementById(id)?.classList.add('open'); }
-  function closeModal(id) { document.getElementById(id)?.classList.remove('open'); }
-  function confirmDelete(msg, form) { if (confirm(msg || 'Are you sure?')) form.submit(); }
-  // Close modal when clicking the backdrop
-  document.addEventListener('click', function(e) {
-    if (e.target.classList.contains('modal-overlay')) e.target.classList.remove('open');
-  });
-</script>
+  <!-- <link rel="preconnect" href="https://fonts.googleapis.com"> -->
+  <!-- <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"> -->
+  <script>
+    // These must load before any inline page scripts that call them
+    function openModal(id) {
+      document.getElementById(id)?.classList.add('open');
+    }
+
+    function closeModal(id) {
+      document.getElementById(id)?.classList.remove('open');
+    }
+
+    function confirmDelete(msg, form) {
+      if (confirm(msg || 'Are you sure?')) form.submit();
+    }
+    // Close modal when clicking the backdrop
+    document.addEventListener('click', function(e) {
+      if (e.target.classList.contains('modal-overlay')) e.target.classList.remove('open');
+    });
+  </script>
 </head>
 
 <body>

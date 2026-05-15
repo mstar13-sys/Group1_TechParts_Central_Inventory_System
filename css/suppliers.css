@@ -3,7 +3,12 @@
    ============================================================ */
 
 /* Contact info cell */
-.supplier-contact { font-size: 12px; color: var(--text-muted); }
+.supplier-contact {
+   font-size: 12px;
+   color: var(--text-muted);
+}
 
 /* Active / inactive supplier row */
-.supplier-inactive td { opacity: .55; }
+.supplier-inactive td {
+   opacity: .55;
+}

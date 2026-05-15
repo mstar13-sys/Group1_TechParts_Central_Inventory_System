@@ -3,8 +3,19 @@
    ============================================================ */
 
 /* Low stock / out-of-stock text indicators inside the quantity cell */
-.low-stock       { color: var(--warning) !important; font-weight: 600; }
-.out-of-stock-text { color: var(--danger) !important; font-weight: 600; }
+.low-stock {
+   color: var(--warning) !important;
+   font-weight: 600;
+}
+
+.out-of-stock-text {
+   color: var(--danger) !important;
+   font-weight: 600;
+}
 
 /* "No stock row yet" muted indicator */
-.stock-none { color: var(--text-muted); font-style: italic; font-size: 12px; }
+.stock-none {
+   color: var(--text-muted);
+   font-style: italic;
+   font-size: 12px;
+}
