@@ -299,11 +299,11 @@ INSERT INTO PurchaseOrderItem (QuantityOrdered, UnitCost, Product_ID, PurchaseOr
 INSERT INTO Transaction (TransactionDate, CustomerName, CustomerPhone, PaymentMethod, AmountTendered, Discount, TotalAmount, Status, Cashier_ID) VALUES
 ('2025-04-14 10:23:00','Carlo Reyes',    '09171110001','Cash',   20000.00, 0,  15990.00,'Completed',2),
 ('2025-04-14 13:45:00','Walk-in Customer',NULL,        'Cash',    5000.00, 0,   4980.00,'Completed',2),
-('2025-04-15 09:10:00','Ana Villanueva', '09281110002','GCash',      0.00, 5,  21241.00,'Completed',3),
+('2025-04-15 09:10:00','Ana Villanueva', '09281110002','Cash',      0.00, 5,  21241.00,'Completed',3),
 ('2025-04-15 11:30:00','Mark Lim',       '09391110003','Card',       0.00, 0,  44990.00,'Completed',3),
 ('2025-04-16 14:00:00','Jenny Tan',      '09451110004','Cash',   10000.00, 0,   9480.00,'Completed',2),
 ('2025-04-17 16:20:00','Walk-in Customer',NULL,        'Cash',    3000.00, 0,   2990.00,'Completed',2),
-('2025-04-18 10:05:00','Roel Santos',    '09171110005','PayMaya',    0.00,10,  16191.00,'Completed',3),
+('2025-04-18 10:05:00','Roel Santos',    '09171110005','Cash',    0.00,10,  16191.00,'Completed',3),
 ('2025-04-19 15:40:00','Walk-in Customer',NULL,        'Cash',    8000.00, 0,   7490.00,'Completed',2);
 
 -- Sale Items
@@ -316,3 +316,127 @@ INSERT INTO SaleItem (Quantity, UnitPrice, Product_ID, Transaction_ID) VALUES
 (1,  2990.00,22, 6),
 (1, 14990.00, 3, 7),(1,  2990.00,25, 7),  -- before 10% discount
 (1,  7490.00, 8, 8);
+
+
+
+
+USE TechParts;
+
+-- Supplier.IsActive
+ALTER TABLE Supplier
+    MODIFY COLUMN IsActive TINYINT(1) DEFAULT 1;
+
+-- Add IsActive if it flat out doesn't exist
+SET @col = (
+    SELECT COUNT(*) FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = 'TechParts'
+      AND TABLE_NAME   = 'Supplier'
+      AND COLUMN_NAME  = 'IsActive'
+);
+SET @sql = IF(@col = 0,
+    'ALTER TABLE Supplier ADD COLUMN IsActive TINYINT(1) DEFAULT 1',
+    'SELECT "Supplier.IsActive already exists" AS note'
+);
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+-- User.IsActive
+SET @col = (
+    SELECT COUNT(*) FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = 'TechParts'
+      AND TABLE_NAME   = 'User'
+      AND COLUMN_NAME  = 'IsActive'
+);
+SET @sql = IF(@col = 0,
+    'ALTER TABLE User ADD COLUMN IsActive TINYINT(1) DEFAULT 1',
+    'SELECT "User.IsActive already exists" AS note'
+);
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+-- User.CreatedAt
+SET @col = (
+    SELECT COUNT(*) FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = 'TechParts'
+      AND TABLE_NAME   = 'User'
+      AND COLUMN_NAME  = 'CreatedAt'
+);
+SET @sql = IF(@col = 0,
+    'ALTER TABLE User ADD COLUMN CreatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP',
+    'SELECT "User.CreatedAt already exists" AS note'
+);
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+-- Category.Parts
+SET @col = (
+    SELECT COUNT(*) FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = 'TechParts'
+      AND TABLE_NAME   = 'Category'
+      AND COLUMN_NAME  = 'Parts'
+);
+SET @sql = IF(@col = 0,
+    'ALTER TABLE Category ADD COLUMN Parts VARCHAR(255) DEFAULT "N/A"',
+    'SELECT "Category.Parts already exists" AS note'
+);
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+-- Category.Description
+SET @col = (
+    SELECT COUNT(*) FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = 'TechParts'
+      AND TABLE_NAME   = 'Category'
+      AND COLUMN_NAME  = 'Description'
+);
+SET @sql = IF(@col = 0,
+    'ALTER TABLE Category ADD COLUMN Description TEXT',
+    'SELECT "Category.Description already exists" AS note'
+);
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+-- Category.Status (ENUM)
+SET @col = (
+    SELECT COUNT(*) FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = 'TechParts'
+      AND TABLE_NAME   = 'Category'
+      AND COLUMN_NAME  = 'Status'
+);
+SET @sql = IF(@col = 0,
+    'ALTER TABLE Category ADD COLUMN Status ENUM(''Active'',''Inactive'',''Archived'') DEFAULT ''Inactive''',
+    'SELECT "Category.Status already exists" AS note'
+);
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+-- Stock.MinStock
+SET @col = (
+    SELECT COUNT(*) FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = 'TechParts'
+      AND TABLE_NAME   = 'Stock'
+      AND COLUMN_NAME  = 'MinStock'
+);
+SET @sql = IF(@col = 0,
+    'ALTER TABLE Stock ADD COLUMN MinStock INT DEFAULT 5',
+    'SELECT "Stock.MinStock already exists" AS note'
+);
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+-- Stock.LastUpdated
+SET @col = (
+    SELECT COUNT(*) FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = 'TechParts'
+      AND TABLE_NAME   = 'Stock'
+      AND COLUMN_NAME  = 'LastUpdated'
+);
+SET @sql = IF(@col = 0,
+    'ALTER TABLE Stock ADD COLUMN LastUpdated TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP',
+    'SELECT "Stock.LastUpdated already exists" AS note'
+);
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+-- Product_has_Supplier table (junction)
+CREATE TABLE IF NOT EXISTS Product_has_Supplier (
+    Product_ID  INT NOT NULL,
+    Supplier_ID INT NOT NULL,
+    PRIMARY KEY (Product_ID, Supplier_ID),
+    FOREIGN KEY (Product_ID)  REFERENCES Product(ID)  ON DELETE CASCADE,
+    FOREIGN KEY (Supplier_ID) REFERENCES Supplier(ID) ON DELETE CASCADE
+);
+
+SELECT 'Migration complete.' AS result;

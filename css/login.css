@@ -1,29 +1,29 @@
-/* * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-        }
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
 
-        body {
-            min-height: 100vh;
-            background: #0d1b2a;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
+body {
+  min-height: 100vh;
+  background: #0d1b2a;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
 
-        .login-box {
-            display: flex;
-            width: 820px;
-            height: 460px;
-            border-radius: 16px;
-            overflow: hidden;
-            border: 1px solid rgba(0, 255, 255, 0.25);
-            box-shadow: 0 0 30px rgba(0, 255, 255, 0.07);
-        }
+.login-box {
+  display: flex;
+  width: 820px;
+  height: 460px;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid rgba(0, 255, 255, 0.25);
+  box-shadow: 0 0 30px rgba(0, 255, 255, 0.07);
+}
 
-        /* ---- LEFT SIDE ---- */
+/* ---- LEFT SIDE ---- */
 .left-side {
   width: 50%;
   background: #0a1929;

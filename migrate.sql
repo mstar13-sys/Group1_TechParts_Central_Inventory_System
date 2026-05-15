@@ -123,10 +123,4 @@ CREATE TABLE IF NOT EXISTS Product_has_Supplier (
     FOREIGN KEY (Supplier_ID) REFERENCES Supplier(ID) ON DELETE CASCADE
 );
 
--- Ensure all passwords are hashed (bcrypt of 'password123')
--- Only updates rows where password is NOT already a bcrypt hash
-UPDATE User
-SET Password = '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi'
-WHERE Password NOT LIKE '$2y$%';
-
 SELECT 'Migration complete.' AS result;
