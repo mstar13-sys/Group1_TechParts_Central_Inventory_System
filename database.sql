@@ -12,7 +12,7 @@ CREATE TABLE User (
     Name     VARCHAR(100) NOT NULL,
     Email    VARCHAR(254) UNIQUE NOT NULL,
     Password VARCHAR(255) NOT NULL,           -- store bcrypt hash
-    Role     ENUM('Admin','Cashier','User','Viewer') NOT NULL,
+    Role     ENUM('Admin','Cashier') NOT NULL,
     IsActive TINYINT(1) DEFAULT 1,
     CreatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -199,10 +199,7 @@ DELIMITER ;
 -- Users (passwords are bcrypt of 'password123')
 INSERT INTO User (Name, Email, Password, Role) VALUES
 ('Admin User',       'admin@techparts.com',   '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Admin'),
-('Maria Santos',     'maria@techparts.com',   '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Cashier'),
-('Juan Dela Cruz',   'juan@techparts.com',    '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Cashier'),
-('Viewer Account',   'viewer@techparts.com',  '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Viewer'),
-('Regular User',     'user@techparts.com',    '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'User');
+('Cashier User',     'cashier@techparts.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Cashier');
 
 -- Categories
 INSERT INTO Category (Name, Parts, Status, Description) VALUES
@@ -299,11 +296,11 @@ INSERT INTO PurchaseOrderItem (QuantityOrdered, UnitCost, Product_ID, PurchaseOr
 INSERT INTO Transaction (TransactionDate, CustomerName, CustomerPhone, PaymentMethod, AmountTendered, Discount, TotalAmount, Status, Cashier_ID) VALUES
 ('2025-04-14 10:23:00','Carlo Reyes',    '09171110001','Cash',   20000.00, 0,  15990.00,'Completed',2),
 ('2025-04-14 13:45:00','Walk-in Customer',NULL,        'Cash',    5000.00, 0,   4980.00,'Completed',2),
-('2025-04-15 09:10:00','Ana Villanueva', '09281110002','Cash',      0.00, 5,  21241.00,'Completed',3),
-('2025-04-15 11:30:00','Mark Lim',       '09391110003','Card',       0.00, 0,  44990.00,'Completed',3),
+('2025-04-15 09:10:00','Ana Villanueva', '09281110002','Cash',      0.00, 5,  21241.00,'Completed',2),
+('2025-04-15 11:30:00','Mark Lim',       '09391110003','Card',       0.00, 0,  44990.00,'Completed',2),
 ('2025-04-16 14:00:00','Jenny Tan',      '09451110004','Cash',   10000.00, 0,   9480.00,'Completed',2),
 ('2025-04-17 16:20:00','Walk-in Customer',NULL,        'Cash',    3000.00, 0,   2990.00,'Completed',2),
-('2025-04-18 10:05:00','Roel Santos',    '09171110005','Cash',    0.00,10,  16191.00,'Completed',3),
+('2025-04-18 10:05:00','Roel Santos',    '09171110005','Cash',    0.00,10,  16191.00,'Completed',2),
 ('2025-04-19 15:40:00','Walk-in Customer',NULL,        'Cash',    8000.00, 0,   7490.00,'Completed',2);
 
 -- Sale Items

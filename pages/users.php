@@ -14,19 +14,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $id       = (int)($_POST['id'] ?? 0);
     $name     = trim($_POST['name'] ?? '');
     $email    = trim($_POST['email'] ?? '');
-    $role     = $_POST['role'] ?? 'Viewer';
-    if (!in_array($role, ['Admin', 'Cashier', 'User', 'Viewer'], true)) {
-      $role = 'Viewer';
+    $role     = $_POST['role'] ?? 'Cashier';
+    if (!in_array($role, ['Admin', 'Cashier'], true)) {
+      $role = 'Cashier';
     }
-    $active   = (int)($_POST['is_active'] ?? 1);
-    $password = trim($_POST['password'] ?? '');
+    $active   = ($_POST['is_active'] ?? '1') === '1' ? 1 : 0;
+    $password = $_POST['password'] ?? '';
+    $confirmPassword = $_POST['confirm_password'] ?? '';
 
-    if (!$name || !$email) {
-      $msg = 'Name and email required.';
+    if ($name === '' || $email === '') {
+      $msg = 'Name and email are required.';
+      $msgType = 'danger';
+    } elseif (strlen($name) < 2 || strlen($name) > 100) {
+      $msg = 'Name must be 2 to 100 characters.';
+      $msgType = 'danger';
+    } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+      $msg = 'Enter a valid email address.';
+      $msgType = 'danger';
+    } elseif ($password !== '' && strlen($password) < 8) {
+      $msg = 'Password must be at least 8 characters.';
+      $msgType = 'danger';
+    } elseif (($id === 0 || $password !== '') && $password !== $confirmPassword) {
+      $msg = 'Password and confirm password do not match.';
       $msgType = 'danger';
     } else {
       try {
-        if ($id > 0) {
+        $emailCheck = $db->prepare('SELECT COUNT(*) FROM User WHERE Email = ? AND ID <> ?');
+        $emailCheck->execute([$email, $id]);
+        if ((int)$emailCheck->fetchColumn() > 0) {
+          $msg = 'Email address is already used by another account.';
+          $msgType = 'danger';
+        } elseif ($id > 0) {
           if ($password) {
             $db->prepare('UPDATE User SET Name=?,Email=?,Role=?,IsActive=?,Password=? WHERE ID=?')
               ->execute([$name, $email, $role, $active, password_hash($password, PASSWORD_BCRYPT), $id]);
@@ -106,7 +124,6 @@ include __DIR__ . '/../includes/header.php';
               <?php $rc = match ($u['Role']) {
                 'Admin' => 'orange',
                 'Cashier' => 'blue',
-                'User' => 'green',
                 default => 'gray'
               }; ?>
               <span class="badge badge-<?= $rc ?>"><?= $u['Role'] ?></span>
@@ -160,8 +177,6 @@ include __DIR__ . '/../includes/header.php';
             <select name="role" id="u-role" class="form-control">
               <option value="Admin">Admin</option>
               <option value="Cashier">Cashier</option>
-              <option value="User">User</option>
-              <option value="Viewer">Viewer</option>
             </select>
           </div>
           <div class="form-group">
@@ -174,7 +189,11 @@ include __DIR__ . '/../includes/header.php';
         </div>
         <div class="form-group">
           <label class="form-label" id="u-pass-label">Password *</label>
-          <input type="password" name="password" id="u-password" class="form-control" placeholder="Leave blank to keep unchanged (edit)">
+          <input type="password" name="password" id="u-password" class="form-control" minlength="8" placeholder="Leave blank to keep unchanged (edit)">
+        </div>
+        <div class="form-group">
+          <label class="form-label" id="u-confirm-label">Confirm Password *</label>
+          <input type="password" name="confirm_password" id="u-confirm-password" class="form-control" minlength="8" placeholder="Retype password">
         </div>
       </div>
       <div class="modal-footer">
@@ -189,8 +208,11 @@ include __DIR__ . '/../includes/header.php';
   function openAddUser() {
     document.getElementById('user-modal-title').textContent = 'Add User';
     document.getElementById('u-pass-label').textContent = 'Password *';
+    document.getElementById('u-confirm-label').textContent = 'Confirm Password *';
     document.getElementById('u-id').value = 0;
-    ['u-name', 'u-email', 'u-password'].forEach(id => document.getElementById(id).value = '');
+    ['u-name', 'u-email', 'u-password', 'u-confirm-password'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('u-password').required = true;
+    document.getElementById('u-confirm-password').required = true;
     document.getElementById('u-role').value = 'Cashier';
     document.getElementById('u-active').value = '1';
     openModal('user-modal');
@@ -199,12 +221,16 @@ include __DIR__ . '/../includes/header.php';
   function editUser(u) {
     document.getElementById('user-modal-title').textContent = 'Edit User';
     document.getElementById('u-pass-label').textContent = 'New Password (leave blank to keep)';
+    document.getElementById('u-confirm-label').textContent = 'Confirm New Password';
     document.getElementById('u-id').value = u.ID;
     document.getElementById('u-name').value = u.Name;
     document.getElementById('u-email').value = u.Email;
     document.getElementById('u-role').value = u.Role;
     document.getElementById('u-active').value = u.IsActive;
     document.getElementById('u-password').value = '';
+    document.getElementById('u-confirm-password').value = '';
+    document.getElementById('u-password').required = false;
+    document.getElementById('u-confirm-password').required = false;
     openModal('user-modal');
   }
 </script>

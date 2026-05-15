@@ -64,7 +64,7 @@ $suppliers = $db->prepare("
     LEFT JOIN Product_has_Supplier ps ON ps.Supplier_ID = s.ID
     $where
     GROUP BY s.ID
-    ORDER BY s.Name
+    ORDER BY s.ID ASC
 ");
 $suppliers->execute($params);
 $suppliers = $suppliers->fetchAll();
