@@ -426,7 +426,7 @@ if (isset($_GET['reset'])) {
         <div class="right-side">
 
             <?php if (!empty($error)): ?>
-                <div class="error">⚠ <?= htmlspecialchars($error) ?></div>
+                <div class="error" data-swal>⚠ <?= htmlspecialchars($error) ?></div>
             <?php endif; ?>
 
             <!-- ── STEP 1: Enter email ── -->
@@ -484,6 +484,7 @@ if (isset($_GET['reset'])) {
                 <!-- ── DONE ── -->
             <?php elseif ($step === 'done'): ?>
 
+                <div class="done-alert" data-swal data-title="Password Updated" data-message="Your password has been changed successfully."></div>
                 <div class="done-icon">🔓</div>
                 <h2>Password Updated!</h2>
                 <p class="step-label">Your password has been changed successfully.</p>
@@ -496,5 +497,5 @@ if (isset($_GET['reset'])) {
     </div>
 
 </body>
-
+<script src="/js/app.js"></script>
 </html>

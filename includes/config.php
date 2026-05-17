@@ -105,3 +105,28 @@ function verifyCsrf(): void
         exit('Invalid security token.');
     }
 }
+
+function setFlash(string $type, string $message, string $title = ''): void
+{
+    if (session_status() === PHP_SESSION_NONE) {
+        session_start();
+    }
+    $_SESSION['flash_message'] = [
+        'type' => $type,
+        'message' => $message,
+        'title' => $title,
+    ];
+}
+
+function getFlash(): ?array
+{
+    if (session_status() === PHP_SESSION_NONE) {
+        session_start();
+    }
+    if (empty($_SESSION['flash_message'])) {
+        return null;
+    }
+    $flash = $_SESSION['flash_message'];
+    unset($_SESSION['flash_message']);
+    return $flash;
+}

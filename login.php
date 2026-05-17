@@ -39,6 +39,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
                     $_SESSION['user_name'] = $user['Name'];
                     $_SESSION['email']     = $user['Email'];
                     $_SESSION['role']      = $user['Role'];
+                    setFlash('success', 'Login successful. Welcome back!', 'Welcome');
                     header('Location: dashboard.php');
                     exit();
                 } else {
@@ -85,7 +86,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
             <h2>Login</h2>
 
             <?php if (!empty($login_error)): ?>
-                <div class="error">⚠ <?= htmlspecialchars($login_error) ?></div>
+                <div class="error" data-swal>⚠ <?= htmlspecialchars($login_error) ?></div>
             <?php endif; ?>
 
             <form method="POST" action="">
@@ -114,5 +115,5 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
     </div>
 
 </body>
-
+<script src="/js/app.js"></script>
 </html>

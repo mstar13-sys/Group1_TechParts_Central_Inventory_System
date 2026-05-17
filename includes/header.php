@@ -2,6 +2,7 @@
 // /includes/header.php
 $user = currentUser();
 $page = basename($_SERVER['PHP_SELF'], '.php');
+$flash = getFlash();
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -24,6 +25,15 @@ $page = basename($_SERVER['PHP_SELF'], '.php');
     }
 
     function confirmDelete(msg, form) {
+      if (window.showSweetAlert) {
+        showSweetAlert('warning', msg || 'Are you sure?', 'Confirm Action', {
+          showCancel: true,
+          confirmText: 'Yes'
+        }).then(ok => {
+          if (ok && form) form.submit();
+        });
+        return;
+      }
       if (confirm(msg || 'Are you sure?')) form.submit();
     }
     // Close modal when clicking the backdrop
@@ -31,6 +41,11 @@ $page = basename($_SERVER['PHP_SELF'], '.php');
       if (e.target.classList.contains('modal-overlay')) e.target.classList.remove('open');
     });
   </script>
+  <?php if ($flash): ?>
+    <script>
+      window.TechPartsFlash = <?= json_encode($flash, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) ?>;
+    </script>
+  <?php endif; ?>
 </head>
 
 <body>

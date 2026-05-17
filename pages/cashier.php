@@ -297,7 +297,7 @@ include __DIR__ . '/../includes/header.php';
       };
     }
     if (cart[id].qty >= stock) {
-      alert('Cannot add more than available stock (' + stock + ')');
+      showSweetAlert('warning', 'Cannot add more than available stock (' + stock + ').', 'Stock Limit');
       return;
     }
     cart[id].qty++;
@@ -372,7 +372,7 @@ include __DIR__ . '/../includes/header.php';
   function openCheckoutModal() {
     const keys = Object.keys(cart).filter(k => cart[k].qty > 0);
     if (keys.length === 0) {
-      alert('Cart is empty!');
+      showSweetAlert('warning', 'Cart is empty.', 'Checkout');
       return;
     }
     const disc = parseFloat(document.getElementById('discount-input').value) || 0;
