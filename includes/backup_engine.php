@@ -64,29 +64,29 @@ function take_database_backup(string $trigger = 'manual', string $actor = 'syste
     $pass_arg = DB_PASS !== '' ? '--password=' . escapeshellarg(DB_PASS) : '';
 
     $command = sprintf(
-        '"%s"'
-        . ' --host=%s'
-        . ' --user=%s'
-        . ' %s'
-        . ' --default-auth=mysql_native_password'  // fixes caching_sha2_password DLL error on XAMPP
-        . ' --add-drop-database'
-        . ' --add-drop-table'
-        . ' --add-drop-trigger'
-        . ' --complete-insert'
-        . ' --single-transaction'
-        . ' --routines'
-        . ' --triggers'
-        . ' --no-tablespaces'
-        . ' --set-gtid-purged=OFF'
-        . ' --databases %s'
-        . ' > "%s" 2>&1',
-        escapeshellcmd($dump_bin),
-        escapeshellarg(DB_HOST),
-        escapeshellarg(DB_USER),
-        $pass_arg,
-        escapeshellarg(DB_NAME),
-        $full_path
-    );
+    '"%s"'
+    . ' --host=%s'
+    . ' --user=%s'
+    . ' %s'
+    . ' --default-auth=mysql_native_password'
+    . ' --add-drop-database'
+    . ' --add-drop-table'
+    . ' --add-drop-trigger'
+    . ' --complete-insert'
+    . ' --single-transaction'
+    . ' --routines'
+    . ' --triggers'
+    . ' --no-tablespaces'
+    // --set-gtid-purged=OFF removed: MariaDB does not support this flag
+    . ' --databases %s'
+    . ' > "%s" 2>&1',
+    escapeshellcmd($dump_bin),
+    escapeshellarg(DB_HOST),
+    escapeshellarg(DB_USER),
+    $pass_arg,
+    escapeshellarg(DB_NAME),
+    $full_path
+);
 
     exec($command, $output, $return_var);
     $success = ($return_var === 0 && file_exists($full_path) && filesize($full_path) > 0);

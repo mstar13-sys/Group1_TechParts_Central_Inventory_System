@@ -15,3 +15,6 @@
 [2026-05-17 11:08:35] DELETE_OK | file=backup_manual_20260517_110421.sql | actor=Admin User | 
 [2026-05-17 11:08:38] BACKUP_FAIL | file=backup_manual_20260517_110838.sql | actor=Admin User | 
 [2026-05-17 11:08:59] RESTORE_PARTIAL | file=backup_manual_20260517_110838.sql | actor=Admin User | Errors: C:/xampp/mysql/bin/mysqldump.exe: unknown variable 'set-gtid-purged=OFF' → SQLSTATE[42000]: Syntax error or access violation: 1064 You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'C:/xampp/mysql/bin/mysqldump.exe: unknown variable 'set-gtid-purged=OFF'' at line 1
+[2026-05-17 11:37:11] DELETE_OK | file=backup_manual_20260517_110838.sql | actor=Admin User | 
+[2026-05-17 11:54:13] BACKUP_OK | file=backup_manual_20260517_115413.sql | actor=Admin User | 
+[2026-05-17 11:54:55] RESTORE_PARTIAL | file=backup_manual_20260517_115413.sql | actor=Admin User | Errors: INSERT INTO `saleitem` (`ID`, `Quantity`, `UnitPrice`, `Subtotal`, `Product_ID`, → SQLSTATE[HY000]: General error: 3105 The value specified for generated column 'Subtotal' in table 'saleitem' is not allowed.
