@@ -1,6 +1,6 @@
 <?php
 // dashboard.php
-require_once __DIR__ . '/includes/config.php';
+require_once 'includes/config.php';
 requireLogin();
 $pageTitle = 'Dashboard';
 $db = getDB();
@@ -41,9 +41,9 @@ $topProducts = $db->query("
     FROM SaleItem si JOIN Product p ON si.Product_ID=p.ID
     GROUP BY p.ID ORDER BY Sold DESC LIMIT 5")->fetchAll();
 
-include __DIR__ . '/includes/header.php';
+include 'includes/header.php';
 ?>
-<link rel="stylesheet" href="/css/dashboard.css">
+<link rel="stylesheet" href="css/dashboard.css">
 <?php
 ?>
 
@@ -85,7 +85,7 @@ include __DIR__ . '/includes/header.php';
   <!-- Recent Transactions -->
   <div class="card">
     <div class="card-title">Recent Transactions
-      <a href="/pages/transactions.php" class="btn btn-ghost btn-sm">View all</a>
+      <a href="pages/transactions.php" class="btn btn-ghost btn-sm">View all</a>
     </div>
     <div class="table-wrap">
       <table>
@@ -153,7 +153,7 @@ include __DIR__ . '/includes/header.php';
 <!-- Recent POs -->
 <div class="card" style="margin-top:0">
   <div class="card-title">Recent Purchase Orders
-    <a href="/pages/purchase_orders.php" class="btn btn-ghost btn-sm">View all</a>
+    <a href="pages/purchase_orders.php" class="btn btn-ghost btn-sm">View all</a>
   </div>
   <div class="table-wrap">
     <table>
@@ -191,4 +191,4 @@ include __DIR__ . '/includes/header.php';
   </div>
 </div>
 
-<?php include __DIR__ . '/includes/footer.php'; ?>
+<?php include 'includes/footer.php'; ?>

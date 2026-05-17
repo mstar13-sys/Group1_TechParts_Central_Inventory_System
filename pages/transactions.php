@@ -1,6 +1,6 @@
 <?php
 // pages/transactions.php
-require_once __DIR__ . '/../includes/config.php';
+require_once '../includes/config.php';
 requireLogin();
 $pageTitle = 'Transactions';
 $db = getDB();
@@ -99,9 +99,9 @@ function statusColor(string $status): string
   };
 }
 
-include __DIR__ . '/../includes/header.php';
+include '../includes/header.php';
 ?>
-<link rel="stylesheet" href="/css/transactions.css">
+<link rel="stylesheet" href="../css/transactions.css">
 
 <?php if ($msg): ?>
   <div class="alert alert-<?= htmlspecialchars($msgType) ?>"><?= htmlspecialchars($msg) ?></div>
@@ -263,4 +263,4 @@ include __DIR__ . '/../includes/header.php';
   </div>
 <?php endforeach; ?>
 
-<?php include __DIR__ . '/../includes/footer.php'; ?>
+<?php include '../includes/footer.php'; ?>

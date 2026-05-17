@@ -2,6 +2,9 @@
 // /includes/header.php
 $user = currentUser();
 $page = basename($_SERVER['PHP_SELF'], '.php');
+
+// If we are on the dashboard, we don't need '../'. If we are in the pages folder, we do!
+$prefix = ($page === 'dashboard') ? '' : '../';
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -10,9 +13,9 @@ $page = basename($_SERVER['PHP_SELF'], '.php');
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title><?= htmlspecialchars($pageTitle ?? APP_NAME) ?></title>
-  <link rel="stylesheet" href="/css/style.css">
-  <!-- <link rel="preconnect" href="https://fonts.googleapis.com"> -->
-  <!-- <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"> -->
+  <!-- Fixed CSS paths using the prefix -->
+  <link rel="stylesheet" href="<?= $prefix ?>css/style.css">
+  
   <script>
     // These must load before any inline page scripts that call them
     function openModal(id) {
@@ -48,53 +51,58 @@ $page = basename($_SERVER['PHP_SELF'], '.php');
     <ul class="nav-links">
       <li class="nav-section">OVERVIEW</li>
       <li class="<?= $page === 'dashboard' ? 'active' : '' ?>">
-        <a href="/dashboard.php"><i class="ico">▦</i> Dashboard</a>
+        <!-- Dynamic path for Dashboard -->
+        <a href="<?= $prefix ?>dashboard.php"><i class="ico">▦</i> Dashboard</a>
       </li>
 
       <?php if (in_array($user['role'], ['Admin', 'Cashier', 'User'])): ?>
         <li class="nav-section">SALES</li>
         <?php if (in_array($user['role'], ['Admin', 'Cashier'])): ?>
           <li class="<?= $page === 'cashier' ? 'active' : '' ?>">
-            <a href="/pages/cashier.php"><i class="ico">🛒</i> POS / Cashier</a>
+            <a href="<?= $prefix ?>pages/cashier.php"><i class="ico">🛒</i> POS / Cashier</a>
           </li>
         <?php endif; ?>
         <li class="<?= $page === 'transactions' ? 'active' : '' ?>">
-          <a href="/pages/transactions.php"><i class="ico">📋</i> Transactions</a>
+          <a href="<?= $prefix ?>pages/transactions.php"><i class="ico">📋</i> Transactions</a>
         </li>
       <?php endif; ?>
 
       <li class="nav-section">INVENTORY</li>
       <li class="<?= $page === 'products' ? 'active' : '' ?>">
-        <a href="/pages/products.php"><i class="ico">📦</i> Products</a>
+        <a href="<?= $prefix ?>pages/products.php"><i class="ico">📦</i> Products</a>
       </li>
       <li class="<?= $page === 'categories' ? 'active' : '' ?>">
-        <a href="/pages/categories.php"><i class="ico">🗂</i> Categories</a>
+        <a href="<?= $prefix ?>pages/categories.php"><i class="ico">🗂</i> Categories</a>
       </li>
       <li class="<?= $page === 'stock' ? 'active' : '' ?>">
-        <a href="/pages/stock.php"><i class="ico">📊</i> Stock</a>
+        <a href="<?= $prefix ?>pages/stock.php"><i class="ico">📊</i> Stock</a>
       </li>
 
       <li class="nav-section">PROCUREMENT</li>
       <li class="<?= $page === 'suppliers' ? 'active' : '' ?>">
-        <a href="/pages/suppliers.php"><i class="ico">🏭</i> Suppliers</a>
+        <a href="<?= $prefix ?>pages/suppliers.php"><i class="ico">🏭</i> Suppliers</a>
       </li>
-      <li class="<?= $page === 'purchase_orders' ? 'active' : '' ?>">
-        <a href="/pages/purchase_orders.php"><i class="ico">📑</i> Purchase Orders</a>
+      <li class="<?= $prefix ?>purchase_orders' ? 'active' : '' ?>">
+        <a href="<?= $prefix ?>pages/purchase_orders.php"><i class="ico">📑</i> Purchase Orders</a>
       </li>
 
       <?php if ($user['role'] === 'Admin'): ?>
         <li class="nav-section">ADMIN</li>
         <li class="<?= $page === 'users' ? 'active' : '' ?>">
-          <a href="/pages/users.php"><i class="ico">👥</i> Users</a>
+          <a href="<?= $prefix ?>pages/users.php"><i class="ico">👥</i> Users</a>
         </li>
         <li class="<?= $page === 'reports' ? 'active' : '' ?>">
-          <a href="/pages/reports.php"><i class="ico">📈</i> Reports</a>
+          <a href="<?= $prefix ?>pages/reports.php"><i class="ico">📈</i> Reports</a>
+        </li>
+        <li class="<?= $page === 'backup_recovery' ? 'active' : '' ?>">
+          <a href="<?= $prefix ?>pages/backup_recovery.php"><i class="ico">🛡</i> Backup &amp; Recovery</a>
         </li>
       <?php endif; ?>
     </ul>
 
     <div class="sidebar-footer">
-      <a href="/logout.php" class="logout-btn">⏏ Logout</a>
+      <!-- Dynamic path for Logout -->
+      <a href="<?= $prefix ?>logout.php" class="logout-btn">⏏ Logout</a>
     </div>
   </nav>
 

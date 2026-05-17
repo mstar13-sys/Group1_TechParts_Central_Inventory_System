@@ -1,6 +1,6 @@
 <?php
 // pages/stock.php
-require_once __DIR__ . '/../includes/config.php';
+require_once '../includes/config.php';
 requireLogin();
 $pageTitle = 'Stock Management';
 $db = getDB();
@@ -75,9 +75,9 @@ $lowCount   = (int)$alerts['low_stock'];
 $emptyCount = (int)$alerts['out_of_stock'];
 $totalValue = $db->query('SELECT COALESCE(SUM(s.Quantity*p.Price),0) FROM Stock s JOIN Product p ON s.Product_ID=p.ID')->fetchColumn();
 
-include __DIR__ . '/../includes/header.php';
+include '../includes/header.php';
 ?>
-<link rel="stylesheet" href="/css/stock.css">
+<link rel="stylesheet" href="../css/stock.css">
 
 <?php if ($msg): ?><div class="alert alert-<?= $msgType ?>"><?= htmlspecialchars($msg) ?></div><?php endif; ?>
 
@@ -211,4 +211,4 @@ include __DIR__ . '/../includes/header.php';
     openModal('adjust-modal');
   }
 </script>
-<?php include __DIR__ . '/../includes/footer.php'; ?>
+<?php include '../includes/footer.php'; ?>

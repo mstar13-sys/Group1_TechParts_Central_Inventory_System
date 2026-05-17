@@ -1,6 +1,6 @@
 <?php
 // pages/suppliers.php
-require_once __DIR__ . '/../includes/config.php';
+require_once '/../includes/config.php';
 requireLogin();
 $pageTitle = 'Suppliers';
 $db = getDB();
@@ -69,9 +69,9 @@ $suppliers = $db->prepare("
 $suppliers->execute($params);
 $suppliers = $suppliers->fetchAll();
 
-include __DIR__ . '/../includes/header.php';
+include '/../includes/header.php';
 ?>
-<link rel="stylesheet" href="/css/suppliers.css">
+<link rel="stylesheet" href="../css/suppliers.css">
 <?php
 ?>
 
@@ -204,4 +204,4 @@ include __DIR__ . '/../includes/header.php';
   }
 </script>
 
-<?php include __DIR__ . '/../includes/footer.php'; ?>
+<?php include '/../includes/footer.php'; ?>

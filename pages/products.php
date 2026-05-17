@@ -1,6 +1,6 @@
 <?php
 // pages/products.php
-require_once __DIR__ . '/../includes/config.php';
+require_once '../includes/config.php';
 requireLogin();
 $pageTitle = 'Products';
 $db = getDB();
@@ -80,9 +80,9 @@ $products = $db->prepare("
 $products->execute($params);
 $products = $products->fetchAll();
 
-include __DIR__ . '/../includes/header.php';
+include '../includes/header.php';
 ?>
-<link rel="stylesheet" href="/css/products.css">
+<link rel="stylesheet" href="../css/products.css">
 
 <?php if ($msg): ?><div class="alert alert-<?= $msgType ?>"><?= htmlspecialchars($msg) ?></div><?php endif; ?>
 
@@ -231,4 +231,4 @@ include __DIR__ . '/../includes/header.php';
     openModal('product-modal');
   }
 </script>
-<?php include __DIR__ . '/../includes/footer.php'; ?>
+<?php include '../includes/footer.php'; ?>

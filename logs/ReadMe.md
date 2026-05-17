@@ -1,0 +1,1 @@
+This folder is necessary for log dumps.

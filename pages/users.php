@@ -1,6 +1,6 @@
 <?php
 // pages/users.php
-require_once __DIR__ . '/../includes/config.php';
+require_once '../includes/config.php';
 requireLogin(['Admin']);
 $pageTitle = 'User Management';
 $db = getDB();
@@ -86,9 +86,9 @@ $users = $db->query("
     ORDER BY u.Role, u.Name
 ")->fetchAll();
 
-include __DIR__ . '/../includes/header.php';
+include '../includes/header.php';
 ?>
-<link rel="stylesheet" href="/css/users.css">
+<link rel="stylesheet" href="../css/users.css">
 <?php
 ?>
 
@@ -234,4 +234,4 @@ include __DIR__ . '/../includes/header.php';
     openModal('user-modal');
   }
 </script>
-<?php include __DIR__ . '/../includes/footer.php'; ?>
+<?php include '../includes/footer.php'; ?>
