@@ -342,7 +342,7 @@ include '../includes/header.php';
     document.getElementById('view-po-title').textContent = 'PO-' + String(id).padStart(4, '0');
     document.getElementById('view-po-body').innerHTML = '<p style="text-align:center;padding:20px;color:var(--text-muted)">Loading…</p>';
     openModal('view-po-modal');
-    const resp = await fetch('/api/po_detail.php?id=' + id);
+    const resp = await fetch('../api/po_detail.php?id=' + id);
     document.getElementById('view-po-body').innerHTML = await resp.text();
   }
 </script>

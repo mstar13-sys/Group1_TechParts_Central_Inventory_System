@@ -60,11 +60,11 @@ function requireLogin(array $allowedRoles = []): void
         session_start();
     }
     if (empty($_SESSION['user_id'])) {
-        header('Location: /login.php');
+        header('Location: login.php');
         exit;
     }
     if (!empty($allowedRoles) && !in_array($_SESSION['role'], $allowedRoles, true)) {
-        header('Location: /unauthorized.php');
+        header('Location: unauthorized.php');
         exit;
     }
 }

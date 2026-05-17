@@ -11,26 +11,42 @@ require_once '../includes/header.php';
 
 <div class="br-container">
 
-  <!-- ── Status banner (JS-populated) ───────────────────────────────────── -->
+  <!-- ── Status banner ───────────────────────────────────────────────────── -->
   <div id="br-alert" class="alert" style="display:none"></div>
 
-  <!-- ── Top action bar ─────────────────────────────────────────────────── -->
+  <!-- ── Action bar ──────────────────────────────────────────────────────── -->
   <div class="card br-card">
     <div class="br-header">
       <div>
         <h2 class="br-title">🛡 Database Backup &amp; Recovery</h2>
         <p class="br-subtitle">
-          Create a point-in-time snapshot of <strong><?= htmlspecialchars(DB_NAME) ?></strong>
-          or restore it from an earlier backup.
+          Snapshot and restore <strong><?= htmlspecialchars(DB_NAME) ?></strong>.
+          Backups are compatible with MySQL Workbench
+          <em>(Server → Data Export / Data Import)</em>.
         </p>
       </div>
-      <button id="btn-backup" class="btn btn-primary">
-        <span class="btn-icon">💾</span> Create Backup Now
-      </button>
+      <div class="br-btn-group">
+        <button id="btn-backup" class="btn btn-primary">
+          💾 Create Backup Now
+        </button>
+        <button id="btn-import" class="btn btn-secondary" title="Upload a .sql file exported from MySQL Workbench">
+          📂 Import Workbench SQL
+        </button>
+        <!-- Hidden file input — triggered by btn-import click -->
+        <input type="file" id="import-file-input" accept=".sql" style="display:none">
+      </div>
+    </div>
+
+    <!-- ── Workbench tip ─────────────────────────────────────────────────── -->
+    <div class="br-tip">
+      <strong>💡 MySQL Workbench workflow:</strong>
+      <span>Export → <em>Server → Data Export → select TechParts2 → Export to Self-Contained File (.sql)</em></span>
+      &nbsp;|&nbsp;
+      <span>Import → click <em>Import Workbench SQL</em> above, or use <em>Server → Data Import</em> in Workbench</span>
     </div>
   </div>
 
-  <!-- ── Backup file table ──────────────────────────────────────────────── -->
+  <!-- ── Backup file table ───────────────────────────────────────────────── -->
   <div class="card br-card">
     <div class="br-table-header">
       <h3>Saved Backups</h3>
@@ -42,7 +58,7 @@ require_once '../includes/header.php';
     <table class="br-table" id="br-table" style="display:none">
       <thead>
         <tr>
-          <th>Filename</th>
+          <th>Backup</th>
           <th>Created</th>
           <th>Size</th>
           <th>Actions</th>
@@ -60,7 +76,7 @@ require_once '../includes/header.php';
 
 </div><!-- .br-container -->
 
-<!-- Hidden CSRF field — read by backup.js for all POST requests -->
+<!-- CSRF token — must appear before backup.js -->
 <input type="hidden" id="csrf-token" value="<?= htmlspecialchars(csrfToken(), ENT_QUOTES, 'UTF-8') ?>">
 
 <script src="../js/backup.js"></script>

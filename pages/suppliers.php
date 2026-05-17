@@ -1,6 +1,6 @@
 <?php
 // pages/suppliers.php
-require_once '/../includes/config.php';
+require_once '../includes/config.php';
 requireLogin();
 $pageTitle = 'Suppliers';
 $db = getDB();
@@ -69,7 +69,7 @@ $suppliers = $db->prepare("
 $suppliers->execute($params);
 $suppliers = $suppliers->fetchAll();
 
-include '/../includes/header.php';
+include '../includes/header.php';
 ?>
 <link rel="stylesheet" href="../css/suppliers.css">
 <?php
