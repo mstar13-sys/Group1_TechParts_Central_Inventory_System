@@ -18,3 +18,6 @@
 [2026-05-17 11:37:11] DELETE_OK | file=backup_manual_20260517_110838.sql | actor=Admin User | 
 [2026-05-17 11:54:13] BACKUP_OK | file=backup_manual_20260517_115413.sql | actor=Admin User | 
 [2026-05-17 11:54:55] RESTORE_PARTIAL | file=backup_manual_20260517_115413.sql | actor=Admin User | Errors: INSERT INTO `saleitem` (`ID`, `Quantity`, `UnitPrice`, `Subtotal`, `Product_ID`, → SQLSTATE[HY000]: General error: 3105 The value specified for generated column 'Subtotal' in table 'saleitem' is not allowed.
+[2026-05-19 03:39:22] DELETE_OK | file=backup_manual_20260517_115413.sql | actor=Admin User | 
+[2026-05-19 03:39:25] BACKUP_OK | file=backup_manual_20260519_033925.sql | actor=Admin User | 
+[2026-05-19 03:40:03] RESTORE_OK | file=backup_manual_20260519_033925.sql | actor=Admin User | Executed 162 statements

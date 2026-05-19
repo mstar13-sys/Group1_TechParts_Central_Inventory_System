@@ -1,150 +1,163 @@
-/* /css/backup_recovery.css
-   Scoped styles for the Backup & Recovery page.
-   All selectors are prefixed with .br- to avoid collisions with style.css.
+/* backup_recovery.css
+   styles for the Backup & Recovery page only
+   all class names start with .br- so they don't clash with the main style.css
 */
 
-/* ── Page container ─────────────────────────────────────────────────────── */
+
+/* the outer wrapper that stacks the two cards vertically */
 .br-container {
-  display: flex;
-  flex-direction: column;
-  gap: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
 }
 
-/* ── Card header row ─────────────────────────────────────────────────────── */
+
+/* card padding */
 .br-card {
-  padding: 1.5rem 1.75rem;
+    padding: 1.5rem 1.75rem;
 }
 
+
+/* top row inside the first card - title on the left, buttons on the right */
 .br-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 1rem;
-  flex-wrap: wrap;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
 }
 
 .br-title {
-  font-size: 1.2rem;
-  font-weight: 700;
-  margin: 0 0 .25rem;
-  color: var(--text-primary, #ffffff); /* Base title remains white */
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin: 0 0 .25rem;
+    color: var(--text-primary, #ffffff);
 }
 
 .br-subtitle {
-  font-size: .875rem;
-  color: var(--text-muted, rgba(255, 255, 255, 0.7));
-  margin: 0;
+    font-size: .875rem;
+    color: var(--text-muted, rgba(255, 255, 255, 0.7));
+    margin: 0;
 }
 
-/* ── Table section ───────────────────────────────────────────────────────── */
+
+/* row above the table with the heading and the refresh button */
 .br-table-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
 }
 
 .br-table-header h3 {
-  margin: 0;
-  font-size: 1rem;
-  font-weight: 600;
-  color: #ffffff;
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #ffffff;
 }
 
+
+/* the backup files table */
 .br-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: .875rem;
+    width: 100%;
+    border-collapse: collapse;
+    font-size: .875rem;
 }
 
-/* Table Header Styles (Dark Gray Background, Electric Orange Text & Line) */
+/* dark gray header row with orange text and orange bottom border */
 .br-table th {
-  text-align: left;
-  padding: .6rem .75rem;
-  background: #2a2a2e; /* Dark Gray Background */
-  border-bottom: 2px solid #ff6600; /* Electric Orange Line */
-  font-weight: 600;
-  color: #ff6600; /* Electric Orange Font Color */
-  white-space: nowrap;
+    text-align: left;
+    padding: .6rem .75rem;
+    background: #2a2a2e;
+    border-bottom: 2px solid #ff6600;
+    font-weight: 600;
+    color: #ff6600;
+    white-space: nowrap;
 }
 
-/* Table Body Row Styles (Invisible Grid Lines, White Font Color) */
+/* table body cells - white text, invisible borders by default */
 .br-table td {
-  padding: .65rem .75rem;
-  border-bottom: 1px solid transparent; /* Invisible Grid Lines */
-  vertical-align: middle;
-  color: #ffffff; /* White Font Color */
-  transition: all 0.2s ease-in-out; /* Smooth transition for hover effects */
+    padding: .65rem .75rem;
+    border-bottom: 1px solid transparent;
+    vertical-align: middle;
+    color: #ffffff;
+    transition: all 0.2s ease-in-out;
 }
 
 .br-table tr:last-child td {
-  border-bottom: none;
+    border-bottom: none;
 }
 
-/* Table Row Hover State (Orange Background, Bold Black Font) */
+/* hover state - orange background with black bold text */
 .br-table tr:hover td {
-  background: #ff6600; /* Electric Orange Background */
-  color: #000000; /* Black Font Color */
-  font-weight: 700; /* Bold Font Weight */
+    background: #ff6600;
+    color: #000000;
+    font-weight: 700;
 }
 
-/* Filename cell — truncate very long names */
+/* filename cell - cut off long names with ellipsis */
 .br-filename {
-  max-width: 340px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-family: monospace;
-  font-size: .8rem;
+    max-width: 340px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-family: monospace;
+    font-size: .8rem;
 }
 
-/* ── Actions column ──────────────────────────────────────────────────────── */
+
+/* the cell that holds the Restore and Delete buttons */
 .br-actions {
-  display: flex;
-  gap: .5rem;
-  flex-wrap: wrap;
+    display: flex;
+    gap: .5rem;
+    flex-wrap: wrap;
 }
 
-/* ── States ──────────────────────────────────────────────────────────────── */
+
+/* loading spinner text and empty state message */
 .br-loading,
 .br-empty {
-  padding: 2rem 1rem;
-  text-align: center;
-  color: var(--text-muted, rgba(255, 255, 255, 0.7));
-  font-size: .95rem;
+    padding: 2rem 1rem;
+    text-align: center;
+    color: var(--text-muted, rgba(255, 255, 255, 0.7));
+    font-size: .95rem;
 }
 
 .br-loading::before {
-  content: '⏳ ';
+    content: '⏳ ';
 }
 
-/* ── Alert overrides for this page ──────────────────────────────────────── */
+
+/* alert box fade transition */
 #br-alert {
-  transition: opacity .4s;
-  border-radius: .4rem;
-  padding: .75rem 1rem;
-  font-size: .9rem;
-}
-/* ── Button group (Create Backup + Import Workbench) ────────────────────── */
-.br-btn-group {
-  display: flex;
-  gap: .6rem;
-  flex-wrap: wrap;
-  align-items: flex-start;
+    transition: opacity .4s;
+    border-radius: .4rem;
+    padding: .75rem 1rem;
+    font-size: .9rem;
 }
 
-/* ── Workbench workflow tip ──────────────────────────────────────────────── */
+
+/* the group that holds the Create Backup and Import buttons */
+.br-btn-group {
+    display: flex;
+    gap: .6rem;
+    flex-wrap: wrap;
+    align-items: flex-start;
+}
+
+
+/* the orange tip box at the bottom of the first card */
 .br-tip {
-  margin-top: 1rem;
-  padding: .6rem .85rem;
-  background: rgba(255, 102, 0, 0.08);
-  border-left: 3px solid #ff6600;
-  border-radius: 0 .35rem .35rem 0;
-  font-size: .8rem;
-  color: rgba(255, 255, 255, 0.75);
-  line-height: 1.6;
+    margin-top: 1rem;
+    padding: .6rem .85rem;
+    background: rgba(255, 102, 0, 0.08);
+    border-left: 3px solid #ff6600;
+    border-radius: 0 .35rem .35rem 0;
+    font-size: .8rem;
+    color: rgba(255, 255, 255, 0.75);
+    line-height: 1.6;
 }
 
 .br-tip strong {
-  color: #ff6600;
+    color: #ff6600;
 }
