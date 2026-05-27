@@ -1,3 +1,4 @@
+
 <?php
 // pages/cashier.php
 require_once __DIR__ . '/../includes/config.php';
@@ -13,11 +14,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['checkout'])) {
   $cartJson      = $_POST['cart_json'] ?? '[]';
   $customerName  = trim($_POST['customer_name'] ?? 'Walk-in Customer') ?: 'Walk-in Customer';
   $customerPhone = trim($_POST['customer_phone'] ?? '') ?: null;
-  $payMethod     = $_POST['payment_method'] ?? 'Cash';
-  $allowedPayments = ['Cash', 'Card', 'GCash', 'PayMaya', 'Other'];
-  if (!in_array($payMethod, $allowedPayments, true)) {
-    $payMethod = 'Cash';
-  }
+  $payMethod     = 'Cash';
   $tendered      = max(0, (float)($_POST['amount_tendered'] ?? 0));
   $discount      = min(100, max(0, (float)($_POST['discount'] ?? 0)));
   $cart          = json_decode($cartJson, true) ?? [];
@@ -29,18 +26,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['checkout'])) {
     try {
       $db->beginTransaction();
 
-      $cleanCart = [];
-      $subtotal = 0;
-      $productStmt = $db->prepare('SELECT ID, Name, Price FROM Product WHERE ID = ? FOR UPDATE');
-      $stockStmt = $db->prepare('SELECT Quantity FROM Stock WHERE Product_ID = ? FOR UPDATE');
-
+      $requestedItems = [];
       foreach ($cart as $item) {
         $productId = (int)($item['product_id'] ?? 0);
         $qty = (int)($item['qty'] ?? 0);
         if ($productId <= 0 || $qty <= 0) {
           throw new Exception('Invalid cart item.');
         }
+        $requestedItems[$productId] = ($requestedItems[$productId] ?? 0) + $qty;
+      }
 
+      $cleanCart = [];
+      $subtotal = 0;
+      $productStmt = $db->prepare('SELECT ID, Name, Price FROM Product WHERE ID = ? AND IsActive=1 FOR UPDATE');
+      $stockStmt = $db->prepare('SELECT ID, Quantity FROM Stock WHERE Product_ID = ? AND Quantity > 0 ORDER BY ID FOR UPDATE');
+
+      foreach ($requestedItems as $productId => $qty) {
         $productStmt->execute([$productId]);
         $product = $productStmt->fetch();
         if (!$product) {
@@ -48,7 +49,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['checkout'])) {
         }
 
         $stockStmt->execute([$productId]);
-        $availableQty = array_sum(array_map('intval', array_column($stockStmt->fetchAll(), 'Quantity')));
+        $stockRows = $stockStmt->fetchAll();
+        $availableQty = array_sum(array_map('intval', array_column($stockRows, 'Quantity')));
         if ($qty > $availableQty) {
           throw new Exception($product['Name'] . ' has only ' . $availableQty . ' item(s) available.');
         }
@@ -58,6 +60,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['checkout'])) {
           'product_id' => $productId,
           'qty' => $qty,
           'price' => $price,
+          'stock_rows' => $stockRows,
         ];
         $subtotal += $price * $qty;
       }
@@ -74,8 +77,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['checkout'])) {
 
       // Insert sale items
       $siStmt = $db->prepare('INSERT INTO SaleItem (Quantity,UnitPrice,Product_ID,Transaction_ID) VALUES (?,?,?,?)');
+      $stockUpdateStmt = $db->prepare('UPDATE Stock SET Quantity = Quantity - ?, LastUpdated = NOW() WHERE ID = ?');
       foreach ($cleanCart as $item) {
         $siStmt->execute([$item['qty'], $item['price'], $item['product_id'], $txnId]);
+
+        $remaining = $item['qty'];
+        foreach ($item['stock_rows'] as $stockRow) {
+          if ($remaining <= 0) {
+            break;
+          }
+
+          $deductQty = min($remaining, (int)$stockRow['Quantity']);
+          if ($deductQty <= 0) {
+            continue;
+          }
+
+          $stockUpdateStmt->execute([$deductQty, $stockRow['ID']]);
+          $remaining -= $deductQty;
+        }
+
+        if ($remaining > 0) {
+          throw new Exception('Unable to deduct stock for a cart item.');
+        }
       }
 
       $db->commit();
@@ -93,10 +116,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['checkout'])) {
 // Load products with stock
 $products = $db->query("
     SELECT p.ID, p.Name, p.Brand, p.Price, c.Name AS CategoryName,
-           COALESCE(SUM(s.Quantity),0) AS StockQty
+           COALESCE(SUM(s.Quantity), 0) AS StockQty,
+           COALESCE(MAX(s.MinStock), 5) AS MinStock
     FROM Product p
     LEFT JOIN Category c ON p.Category_ID = c.ID
     LEFT JOIN Stock s ON s.Product_ID = p.ID
+    WHERE p.IsActive=1
     GROUP BY p.ID
     ORDER BY c.Name, p.Name
 ")->fetchAll();
@@ -155,7 +180,7 @@ include __DIR__ . '/../includes/header.php';
               <div class="product-tile-brand"><?= htmlspecialchars($p['Brand']) ?> · <?= htmlspecialchars($catName) ?></div>
               <div class="product-tile-name"><?= htmlspecialchars($p['Name']) ?></div>
               <div class="product-tile-price">₱<?= number_format($p['Price'], 2) ?></div>
-              <div class="product-tile-stock <?= $p['StockQty'] <= 0 ? 'out-of-stock-text' : ($p['StockQty'] <= 5 ? 'low-stock' : '') ?>">
+              <div class="product-tile-stock <?= $p['StockQty'] <= 0 ? 'out-of-stock-text' : ($p['StockQty'] <= $p['MinStock'] ? 'low-stock' : '') ?>">
                 <?= $p['StockQty'] <= 0 ? 'Out of Stock' : 'Stock: ' . $p['StockQty'] ?>
               </div>
             </div>
@@ -230,13 +255,7 @@ include __DIR__ . '/../includes/header.php';
 
         <div class="form-group">
           <label class="form-label">Payment Method</label>
-          <select name="payment_method" class="form-control" onchange="toggleTendered(this.value)">
-            <option value="Cash">💵 Cash</option>
-            <option value="Card">💳 Card</option>
-            <option value="GCash">📱 GCash</option>
-            <option value="PayMaya">📱 PayMaya</option>
-            <option value="Other">Other</option>
-          </select>
+          <input type="text" class="form-control" value="Cash" readonly>
         </div>
 
         <div class="form-group" id="tendered-group">
@@ -302,42 +321,6 @@ include __DIR__ . '/../includes/header.php';
     }
     cart[id].qty++;
     renderCart();
-  }
-
-  function renderCart() {
-    const container = document.getElementById('cart-items');
-    const emptyMsg = document.getElementById('cart-empty');
-    const keys = Object.keys(cart).filter(k => cart[k].qty > 0);
-
-    document.getElementById('cart-count').textContent = `(${keys.reduce((a,k)=>a+cart[k].qty,0)} items)`;
-
-    if (keys.length === 0) {
-      container.innerHTML = '';
-      container.appendChild(emptyMsg);
-      emptyMsg.style.display = 'block';
-      recalc();
-      return;
-    }
-    emptyMsg.style.display = 'none';
-    container.innerHTML = keys.map(k => {
-      const i = cart[k];
-      const name = escapeHtml(i.name);
-      const brand = escapeHtml(i.brand);
-      return `<div class="cart-item">
-      <div>
-        <div class="cart-item-name">${name}</div>
-        <div style="font-size:11px;color:var(--text-muted)">${brand}</div>
-      </div>
-      <div class="cart-item-qty">
-        <button class="qty-btn" onclick="changeQty('${k}',-1)">−</button>
-        <span style="min-width:20px;text-align:center;font-weight:600">${i.qty}</span>
-        <button class="qty-btn" onclick="changeQty('${k}',1)">+</button>
-      </div>
-      <div class="cart-item-price">₱${(i.price*i.qty).toLocaleString('en-PH',{minimumFractionDigits:2})}</div>
-      <button class="cart-item-remove" onclick="removeItem('${k}')">✕</button>
-    </div>`;
-    }).join('');
-    recalc();
   }
 
   function changeQty(id, delta) {
@@ -421,6 +404,85 @@ include __DIR__ . '/../includes/header.php';
       const match = t.dataset.name.toLowerCase().includes(q) || t.dataset.brand.toLowerCase().includes(q);
       t.style.display = match ? '' : 'none';
     });
+  }
+
+  function renderCart() {
+    const container = document.getElementById('cart-items');
+    let emptyMsg = document.getElementById('cart-empty');
+    const keys = Object.keys(cart).filter(k => cart[k].qty > 0);
+    const itemCount = keys.reduce((total, k) => total + cart[k].qty, 0);
+
+    document.getElementById('cart-count').textContent = `(${itemCount} items)`;
+    container.innerHTML = '';
+
+    if (keys.length === 0) {
+      if (!emptyMsg) {
+        emptyMsg = document.createElement('div');
+        emptyMsg.className = 'empty-state';
+        emptyMsg.id = 'cart-empty';
+
+        const icon = document.createElement('div');
+        icon.className = 'empty-icon';
+        icon.textContent = '🛒';
+
+        const text = document.createElement('p');
+        text.innerHTML = 'No items yet.<br>Click a product to add.';
+
+        emptyMsg.append(icon, text);
+      }
+      container.appendChild(emptyMsg);
+      recalc();
+      return;
+    }
+
+    keys.forEach(k => {
+      const i = cart[k];
+      const row = document.createElement('div');
+      row.className = 'cart-item';
+
+      const details = document.createElement('div');
+      const name = document.createElement('div');
+      name.className = 'cart-item-name';
+      name.textContent = i.name;
+      const brand = document.createElement('div');
+      brand.className = 'cart-item-brand';
+      brand.textContent = i.brand;
+      details.append(name, brand);
+
+      const qty = document.createElement('div');
+      qty.className = 'cart-item-qty';
+      const minus = document.createElement('button');
+      minus.type = 'button';
+      minus.className = 'qty-btn';
+      minus.textContent = '-';
+      minus.addEventListener('click', () => changeQty(k, -1));
+      const count = document.createElement('span');
+      count.className = 'cart-item-count';
+      count.textContent = i.qty;
+      const plus = document.createElement('button');
+      plus.type = 'button';
+      plus.className = 'qty-btn';
+      plus.textContent = '+';
+      plus.addEventListener('click', () => changeQty(k, 1));
+      qty.append(minus, count, plus);
+
+      const price = document.createElement('div');
+      price.className = 'cart-item-price';
+      price.textContent = '₱' + (i.price * i.qty).toLocaleString('en-PH', {
+        minimumFractionDigits: 2
+      });
+
+      const remove = document.createElement('button');
+      remove.type = 'button';
+      remove.className = 'cart-item-remove';
+      remove.textContent = 'x';
+      remove.addEventListener('click', () => removeItem(k));
+
+      row.append(details, qty, price, remove);
+      container.appendChild(row);
+    });
+
+    recalc();
   }
 
   renderCart();

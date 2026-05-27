@@ -30,11 +30,30 @@ if ($isAdmin && $_SERVER['REQUEST_METHOD'] === 'POST') {
           ->execute([$arrivalDate ?: null, $notes, $supplierId, $_SESSION['user_id']]);
         $poId = $db->lastInsertId();
         $itemStmt = $db->prepare('INSERT INTO PurchaseOrderItem (QuantityOrdered,UnitCost,Product_ID,PurchaseOrder_ID) VALUES (?,?,?,?)');
+        $priceStmt = $db->prepare('SELECT Price FROM Product WHERE ID=? AND IsActive=1');
+        $itemCount = 0;
         foreach ($productIds as $i => $pid) {
-          if ($pid && $qtys[$i] > 0 && $costs[$i] > 0) {
-            $itemStmt->execute([$qtys[$i], $costs[$i], $pid, $poId]);
+          $pid = (int)$pid;
+          $quantity = (int)($qtys[$i] ?? 0);
+          $unitCost = (float)($costs[$i] ?? 0);
+
+          if ($pid && $quantity > 0) {
+            if ($unitCost <= 0) {
+              $priceStmt->execute([$pid]);
+              $unitCost = (float)$priceStmt->fetchColumn();
+            }
+
+            if ($unitCost > 0) {
+              $itemStmt->execute([$quantity, $unitCost, $pid, $poId]);
+              $itemCount++;
+            }
           }
         }
+
+        if ($itemCount === 0) {
+          throw new Exception('Add at least one valid product item.');
+        }
+
         $db->commit();
         $msg = 'Purchase Order PO-' . str_pad($poId, 4, '0', STR_PAD_LEFT) . ' created.';
         $msgType = 'success';
@@ -119,7 +138,7 @@ $pos->execute($params);
 $poList = $pos->fetchAll();
 
 $suppliers = $db->query("SELECT * FROM Supplier WHERE IsActive=1 ORDER BY Name")->fetchAll();
-$products  = $db->query("SELECT p.ID,p.Name,p.Brand,p.Price FROM Product p ORDER BY p.Name")->fetchAll();
+$products  = $db->query("SELECT p.ID,p.Name,p.Brand,p.Price FROM Product p WHERE p.IsActive=1 ORDER BY p.Name")->fetchAll();
 
 include __DIR__ . '/../includes/header.php';
 ?>
@@ -210,7 +229,7 @@ include __DIR__ . '/../includes/header.php';
       <span class="modal-title">New Purchase Order</span>
       <button class="modal-close" onclick="closeModal('po-modal')">✕</button>
     </div>
-    <form method="POST">
+    <form method="POST" data-confirm-submit data-confirm-title="Update Purchase Order" data-confirm-message="Update this purchase order status? If it is marked Received, stock quantities may change." data-confirm-button="Update Status">
       <?= csrfField() ?>
       <input type="hidden" name="action" value="create_po">
       <div class="modal-body">
@@ -238,7 +257,7 @@ include __DIR__ . '/../includes/header.php';
           <div class="po-item-row" style="display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:8px;margin-bottom:8px;align-items:end">
             <div>
               <label class="form-label">Product</label>
-              <select name="product_ids[]" class="form-control" required>
+              <select name="product_ids[]" class="form-control" onchange="fillUnitCost(this)" required>
                 <option value="">Select product…</option>
                 <?php foreach ($products as $p): ?>
                   <option value="<?= $p['ID'] ?>" data-price="<?= $p['Price'] ?>"><?= htmlspecialchars($p['Name']) ?> (<?= $p['Brand'] ?>)</option>
@@ -251,7 +270,7 @@ include __DIR__ . '/../includes/header.php';
             </div>
             <div>
               <label class="form-label">Unit Cost (₱)</label>
-              <input type="number" name="unit_costs[]" class="form-control" step="0.01" min="0.01" required placeholder="0.00">
+              <input type="number" name="unit_costs[]" class="form-control" step="0.01" min="0.01" required placeholder="Auto-filled">
             </div>
             <button type="button" class="btn btn-danger btn-sm" style="margin-bottom:1px" onclick="this.closest('.po-item-row').remove()">✕</button>
           </div>
@@ -318,15 +337,30 @@ include __DIR__ . '/../includes/header.php';
 <script>
   const products = <?= json_encode($products) ?>;
 
+  function fillUnitCost(select) {
+    const row = select.closest('.po-item-row');
+    const costInput = row.querySelector('input[name="unit_costs[]"]');
+    const selected = select.options[select.selectedIndex];
+    const price = selected?.dataset.price || '';
+
+    costInput.value = price ? Number(price).toFixed(2) : '';
+  }
+
+  document.addEventListener('change', function(e) {
+    if (e.target.matches('select[name="product_ids[]"]')) {
+      fillUnitCost(e.target);
+    }
+  });
+
   function addPORow() {
     const opts = products.map(p => `<option value="${p.ID}" data-price="${p.Price}">${p.Name} (${p.Brand})</option>`).join('');
     const row = document.createElement('div');
     row.className = 'po-item-row';
     row.style.cssText = 'display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:8px;margin-bottom:8px;align-items:end';
     row.innerHTML = `
-    <div><select name="product_ids[]" class="form-control"><option value="">Select product…</option>${opts}</select></div>
-    <div><input type="number" name="quantities[]" class="form-control" min="1" value="1"></div>
-    <div><input type="number" name="unit_costs[]" class="form-control" step="0.01" min="0.01" placeholder="0.00"></div>
+    <div><select name="product_ids[]" class="form-control" required><option value="">Select product…</option>${opts}</select></div>
+    <div><input type="number" name="quantities[]" class="form-control" min="1" value="1" required></div>
+    <div><input type="number" name="unit_costs[]" class="form-control" step="0.01" min="0.01" placeholder="0.00" required></div>
     <button type="button" class="btn btn-danger btn-sm" style="margin-bottom:1px" onclick="this.closest('.po-item-row').remove()">✕</button>`;
     document.getElementById('po-items').appendChild(row);
   }

@@ -41,13 +41,38 @@ if ($isAdmin && $_SERVER['REQUEST_METHOD'] === 'POST') {
         $msgType = 'danger';
       }
     }
-  } elseif ($action === 'delete') {
+  } elseif ($action === 'toggle_status') {
     try {
-      $db->prepare('DELETE FROM Category WHERE ID=?')->execute([$_POST['id']]);
-      $msg = 'Category deleted.';
-      $msgType = 'warning';
+      $id = (int)($_POST['id'] ?? 0);
+      $nextStatus = ($_POST['next_status'] ?? '') === 'Active' ? 'Active' : 'Inactive';
+
+      if ($id <= 0) {
+        throw new Exception('Invalid category.');
+      }
+
+      if ($nextStatus === 'Inactive') {
+        $countStmt = $db->prepare('SELECT COUNT(*) FROM Product WHERE Category_ID=?');
+        $countStmt->execute([$id]);
+        $productCount = (int)$countStmt->fetchColumn();
+
+        if ($productCount > 0) {
+          $msg = 'Cannot deactivate this category because there are products inside it.';
+          $msgType = 'danger';
+        } else {
+          $db->prepare('UPDATE Category SET Status=? WHERE ID=?')->execute([$nextStatus, $id]);
+          $msg = 'Category deactivated.';
+          $msgType = 'warning';
+        }
+      } else {
+        $db->prepare('UPDATE Category SET Status=? WHERE ID=?')->execute([$nextStatus, $id]);
+        $msg = 'Category activated.';
+        $msgType = 'success';
+      }
     } catch (PDOException $e) {
-      $msg = 'Cannot delete (products exist): ' . $e->getMessage();
+      $msg = 'Cannot update category status: ' . $e->getMessage();
+      $msgType = 'danger';
+    } catch (Exception $e) {
+      $msg = $e->getMessage();
       $msgType = 'danger';
     }
   }
@@ -88,9 +113,9 @@ include __DIR__ . '/../includes/header.php';
         </tr>
       </thead>
       <tbody>
-        <?php foreach ($categories as $c): ?>
+        <?php foreach ($categories as $index => $c): ?>
           <tr>
-            <td style="color:var(--text-muted)"><?= $c['ID'] ?></td>
+            <td style="color:var(--text-muted)"><?= $index + 1 ?></td>
             <td style="font-weight:600"><?= htmlspecialchars($c['Name']) ?></td>
             <td style="color:var(--text-muted);font-size:12px"><?= htmlspecialchars($c['Parts']) ?></td>
             <td style="color:var(--text-muted);font-size:12px;max-width:220px"><?= htmlspecialchars(substr($c['Description'] ?? '', 0, 80)) ?><?= strlen($c['Description'] ?? '') > 80 ? '…' : '' ?></td>
@@ -109,9 +134,15 @@ include __DIR__ . '/../includes/header.php';
                 <button class="btn btn-ghost btn-sm" onclick='editCat(<?= json_encode($c, JSON_HEX_APOS | JSON_HEX_TAG) ?>)'>Edit</button>
                 <form method="POST">
                   <?= csrfField() ?>
-                  <input type="hidden" name="action" value="delete">
+                  <input type="hidden" name="action" value="toggle_status">
                   <input type="hidden" name="id" value="<?= $c['ID'] ?>">
-                  <button type="button" class="btn btn-danger btn-sm" onclick="confirmDelete('Delete this category? Products must be reassigned first.',this.closest('form'))">✕</button>
+                  <?php if ($c['Status'] === 'Active'): ?>
+                    <input type="hidden" name="next_status" value="Inactive">
+                    <button type="button" class="btn btn-danger btn-sm" onclick="deactivateCategory(this.closest('form'), <?= (int)$c['ProductCount'] ?>)">Deactivate</button>
+                  <?php else: ?>
+                    <input type="hidden" name="next_status" value="Active">
+                    <button type="button" class="btn btn-ghost btn-sm" onclick="confirmDelete('Activate this category?',this.closest('form'))">Activate</button>
+                  <?php endif; ?>
                 </form>
               </td>
             <?php endif; ?>
@@ -179,6 +210,19 @@ include __DIR__ . '/../includes/header.php';
     document.getElementById('c-status').value = c.Status;
     document.getElementById('c-desc').value = c.Description || '';
     openModal('cat-modal');
+  }
+
+  function deactivateCategory(form, productCount) {
+    if (productCount > 0) {
+      showSweetAlert(
+        'warning',
+        'Cannot deactivate this category because there are products inside it.',
+        'Category Has Products'
+      );
+      return;
+    }
+
+    confirmDelete('Deactivate this category?', form);
   }
 </script>
 <?php include __DIR__ . '/../includes/footer.php'; ?>

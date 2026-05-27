@@ -1,10 +1,10 @@
 <?php
 session_start();
-require_once 'includes/config.php';
+require_once __DIR__ . '/../includes/config.php';
 
 // If already logged in, go straight to dashboard
 if (!empty($_SESSION['logged_in'])) {
-    header('Location: dashboard.php');
+    header('Location: /pages/dashboard.php');
     exit();
 }
 
@@ -47,7 +47,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['step1'])) {
             }
         } catch (PDOException $e) {
             error_log('ForgotPW step1: ' . $e->getMessage());
-            $error = 'A database error occurred. Please try again.';
+            http_response_code(503);
+            require __DIR__ . '/../database_recovery.php';
+            exit;
         }
     }
 }
@@ -102,7 +104,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['step3'])) {
             $step = 'done';
         } catch (PDOException $e) {
             error_log('ForgotPW step3: ' . $e->getMessage());
-            $error = 'A database error occurred. Please try again.';
+            http_response_code(503);
+            require __DIR__ . '/../database_recovery.php';
+            exit;
         }
     }
 }
@@ -110,7 +114,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['step3'])) {
 // Allow user to go back and use a different email
 if (isset($_GET['reset'])) {
     unset($_SESSION['fp_step'], $_SESSION['fp_email'], $_SESSION['fp_user_id'], $_SESSION['fp_name'], $_SESSION['fp_verified']);
-    header('Location: forgot_password.php');
+    header('Location: /pages/forgot_password.php');
     exit();
 }
 ?>
@@ -415,9 +419,9 @@ if (isset($_GET['reset'])) {
         <!-- LEFT SIDE — same on all steps -->
         <div class="left-side">
             <div class="logo-box">
-                <img src="logo.png" alt="Logo" width="80">
+                <?php $logoClass = 'login-logo'; include __DIR__ . '/../includes/logo.php'; ?>
             </div>
-            <h1>Tech<span>Gear</span></h1>
+            <h1>Tech<span>Parts</span></h1>
             <p>Inventory Management</p>
             <small>Track and manage your computer parts inventory in one place.</small>
         </div>
@@ -438,12 +442,12 @@ if (isset($_GET['reset'])) {
                 <form method="POST" action="">
                     <?= csrfField() ?>
                     <div class="input-group">
-                        <input type="email" name="email" placeholder="Email address"
+                        <input type="email" name="email" placeholder="Email address" required
                             value="<?= htmlspecialchars($_POST['email'] ?? '') ?>">
                     </div>
                     <button class="login-btn" type="submit" name="step1">Continue →</button>
                     <div class="create">
-                        <a href="login.php">← Back to Login</a>
+                        <a href="/pages/login.php">← Back to Login</a>
                     </div>
                 </form>
 
@@ -456,11 +460,11 @@ if (isset($_GET['reset'])) {
                 <form method="POST" action="">
                     <?= csrfField() ?>
                     <div class="input-group">
-                        <input type="text" name="full_name" placeholder="Your full name">
+                        <input type="text" name="full_name" placeholder="Your full name" required>
                     </div>
                     <button class="login-btn" type="submit" name="step2">Verify →</button>
                     <div class="create">
-                        <a href="forgot_password.php?reset=1">← Use a different email</a>
+                        <a href="/pages/forgot_password.php?reset=1">← Use a different email</a>
                     </div>
                 </form>
 
@@ -473,10 +477,10 @@ if (isset($_GET['reset'])) {
                 <form method="POST" action="">
                     <?= csrfField() ?>
                     <div class="input-group">
-                        <input type="password" name="password" placeholder="New password (min. 8 characters)">
+                        <input type="password" name="password" placeholder="New password (min. 8 characters)" required minlength="8">
                     </div>
                     <div class="input-group">
-                        <input type="password" name="confirm" placeholder="Confirm new password">
+                        <input type="password" name="confirm" placeholder="Confirm new password" required minlength="8">
                     </div>
                     <button class="login-btn" type="submit" name="step3">Update Password</button>
                 </form>
@@ -488,7 +492,7 @@ if (isset($_GET['reset'])) {
                 <div class="done-icon">🔓</div>
                 <h2>Password Updated!</h2>
                 <p class="step-label">Your password has been changed successfully.</p>
-                <a href="login.php" class="login-btn">Go to Login →</a>
+                <a href="/pages/login.php" class="login-btn">Go to Login →</a>
 
             <?php endif; ?>
 
@@ -496,6 +500,7 @@ if (isset($_GET['reset'])) {
 
     </div>
 
-</body>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert2/11.23.0/sweetalert2.all.min.js"></script>
 <script src="/js/app.js"></script>
+</body>
 </html>

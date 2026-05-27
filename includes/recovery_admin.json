@@ -1,0 +1,8 @@
+{
+  "admins": [
+    {
+      "email": "admin@techparts.com",
+      "password_hash": "$2y$12$RmQcU.EUpGUsaVPMMiB2Supxd6lAlpnZsD2dS2wPbuWi.ZQ4wkeJe"
+    }
+  ]
+}

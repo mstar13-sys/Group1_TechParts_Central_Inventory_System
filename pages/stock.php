@@ -27,7 +27,7 @@ $search  = trim($_GET['q'] ?? '');
 $filter  = $_GET['filter'] ?? '';
 
 // Build WHERE — note: use COALESCE so products without a Stock row get Quantity=0
-$where = ['1=1'];
+$where = ['p.IsActive=1'];
 $params = [];
 if ($search) {
   $where[] = '(p.Name LIKE ? OR p.Brand LIKE ?)';
@@ -68,12 +68,13 @@ $alerts = $db->query("
              COALESCE(MAX(s.MinStock), 5) AS min_stock
       FROM Product p
       LEFT JOIN Stock s ON s.Product_ID = p.ID
+      WHERE p.IsActive=1
       GROUP BY p.ID
     ) product_stock
 ")->fetch();
 $lowCount   = (int)$alerts['low_stock'];
 $emptyCount = (int)$alerts['out_of_stock'];
-$totalValue = $db->query('SELECT COALESCE(SUM(s.Quantity*p.Price),0) FROM Stock s JOIN Product p ON s.Product_ID=p.ID')->fetchColumn();
+$totalValue = $db->query('SELECT COALESCE(SUM(s.Quantity*p.Price),0) FROM Stock s JOIN Product p ON s.Product_ID=p.ID WHERE p.IsActive=1')->fetchColumn();
 
 include __DIR__ . '/../includes/header.php';
 ?>

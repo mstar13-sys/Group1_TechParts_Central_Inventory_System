@@ -115,9 +115,9 @@ include __DIR__ . '/../includes/header.php';
         </tr>
       </thead>
       <tbody>
-        <?php foreach ($users as $u): ?>
+        <?php foreach ($users as $index => $u): ?>
           <tr>
-            <td style="color:var(--text-muted)"><?= $u['ID'] ?></td>
+            <td style="color:var(--text-muted)"><?= $index + 1 ?></td>
             <td style="font-weight:600"><?= htmlspecialchars($u['Name']) ?></td>
             <td style="color:var(--text-muted)"><?= htmlspecialchars($u['Email']) ?></td>
             <td>
@@ -138,7 +138,7 @@ include __DIR__ . '/../includes/header.php';
                   <?= csrfField() ?>
                   <input type="hidden" name="action" value="toggle">
                   <input type="hidden" name="id" value="<?= $u['ID'] ?>">
-                  <button type="submit" class="btn btn-ghost btn-sm"><?= $u['IsActive'] ? 'Deactivate' : 'Activate' ?></button>
+                  <button type="button" class="btn btn-ghost btn-sm" onclick="confirmDelete('<?= $u['IsActive'] ? 'Deactivate' : 'Activate' ?> this user account?', this.closest('form'))"><?= $u['IsActive'] ? 'Deactivate' : 'Activate' ?></button>
                 </form>
               <?php endif; ?>
             </td>

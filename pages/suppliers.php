@@ -44,9 +44,9 @@ if ($isAdmin && $_SERVER['REQUEST_METHOD'] === 'POST') {
   } elseif ($action === 'delete') {
     $id = (int)($_POST['id'] ?? 0);
     try {
-      $db->prepare('UPDATE Supplier SET IsActive=0 WHERE ID=?')->execute([$id]);
-      $msg = 'Supplier deactivated.';
-      $msgType = 'warning';
+      $db->prepare('UPDATE Supplier SET IsActive = NOT IsActive WHERE ID=?')->execute([$id]);
+      $msg = 'Supplier status toggled.';
+      $msgType = 'info';
     } catch (PDOException $e) {
       $msg = 'Cannot delete: ' . $e->getMessage();
       $msgType = 'danger';
@@ -55,13 +55,14 @@ if ($isAdmin && $_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $search = trim($_GET['q'] ?? '');
-$where  = $search ? 'WHERE (Name LIKE ? OR Email LIKE ? OR Phone LIKE ?)' : '';
+$where  = $search ? 'WHERE (s.Name LIKE ? OR s.Email LIKE ? OR s.Phone LIKE ?)' : '';
 $params = $search ? ["%$search%", "%$search%", "%$search%"] : [];
 
 $suppliers = $db->prepare("
-    SELECT s.*, COUNT(ps.Supplier_ID) AS ProductCount
+    SELECT s.*, COUNT(p.ID) AS ProductCount
     FROM Supplier s
     LEFT JOIN Product_has_Supplier ps ON ps.Supplier_ID = s.ID
+    LEFT JOIN Product p ON p.ID = ps.Product_ID AND p.IsActive=1
     $where
     GROUP BY s.ID
     ORDER BY s.ID ASC
@@ -123,7 +124,7 @@ include __DIR__ . '/../includes/header.php';
                   <?= csrfField() ?>
                   <input type="hidden" name="action" value="delete">
                   <input type="hidden" name="id" value="<?= $s['ID'] ?>">
-                  <button type="button" class="btn btn-danger btn-sm" onclick="confirmDelete('Deactivate this supplier?',this.closest('form'))">✕</button>
+                  <button type="button" class="btn <?= $s['IsActive'] ? 'btn-danger' : 'btn-ghost' ?> btn-sm" onclick="confirmDelete('<?= $s['IsActive'] ? 'Deactivate' : 'Activate' ?> this supplier?',this.closest('form'))"><?= $s['IsActive'] ? 'Deactivate' : 'Activate' ?></button>
                 </form>
               </td>
             <?php endif; ?>

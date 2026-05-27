@@ -1,5 +1,7 @@
 <?php
 // logout.php
+require_once __DIR__ . '/../includes/config.php';
+
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
@@ -11,5 +13,9 @@ if (ini_get('session.use_cookies')) {
     );
 }
 session_destroy();
-header('Location: /login.php');
+
+session_start();
+setFlash('warning', 'You have logged out. Reminder: admin must create a database backup for safety purposes.', 'Backup Reminder');
+
+header('Location: /pages/login.php');
 exit;

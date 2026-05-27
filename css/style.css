@@ -64,8 +64,12 @@ body {
   border-bottom: 1px solid var(--border);
 }
 
-.brand-icon {
-  font-size: 22px;
+.sidebar-logo {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  object-fit: cover;
+  border: 1px solid var(--border);
 }
 
 .brand-name {

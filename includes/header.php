@@ -10,6 +10,7 @@ $flash = getFlash();
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+ <link rel="icon" href="../assets/images/logo.png" type="image/png">
   <title><?= htmlspecialchars($pageTitle ?? APP_NAME) ?></title>
   <link rel="stylesheet" href="/css/style.css">
   <!-- <link rel="preconnect" href="https://fonts.googleapis.com"> -->
@@ -51,7 +52,7 @@ $flash = getFlash();
 <body>
   <nav class="sidebar">
     <div class="sidebar-brand">
-      <span class="brand-icon">⚙</span>
+      <?php $logoClass = 'sidebar-logo'; include __DIR__ . '/logo.php'; ?>
       <span class="brand-name">TechParts</span>
     </div>
 
@@ -63,7 +64,7 @@ $flash = getFlash();
     <ul class="nav-links">
       <li class="nav-section">OVERVIEW</li>
       <li class="<?= $page === 'dashboard' ? 'active' : '' ?>">
-        <a href="/dashboard.php"><i class="ico">▦</i> Dashboard</a>
+        <a href="/pages/dashboard.php"><i class="ico">▦</i> Dashboard</a>
       </li>
 
       <?php if (in_array($user['role'], ['Admin', 'Cashier', 'User'])): ?>
@@ -105,11 +106,14 @@ $flash = getFlash();
         <li class="<?= $page === 'reports' ? 'active' : '' ?>">
           <a href="/pages/reports.php"><i class="ico">📈</i> Reports</a>
         </li>
+        <li class="<?= $page === 'backup' ? 'active' : '' ?>">
+          <a href="/pages/backup.php"><i class="ico">DB</i> Backup</a>
+        </li>
       <?php endif; ?>
     </ul>
 
     <div class="sidebar-footer">
-      <a href="/logout.php" class="logout-btn">⏏ Logout</a>
+      <a href="/pages/logout.php" class="logout-btn" data-confirm-logout>⏏ Logout</a>
     </div>
   </nav>
 

@@ -41,13 +41,15 @@ if ($isAdmin && $_SERVER['REQUEST_METHOD'] === 'POST') {
         $msgType = 'danger';
       }
     }
-  } elseif ($action === 'delete') {
+  } elseif ($action === 'toggle') {
     try {
-      $db->prepare('DELETE FROM Product WHERE ID=?')->execute([$_POST['id']]);
-      $msg = 'Product deleted.';
-      $msgType = 'warning';
-    } catch (PDOException $e) {
-      $msg = 'Cannot delete: ' . $e->getMessage();
+      $id = (int)($_POST['id'] ?? 0);
+      $nextStatus = (int)($_POST['next_status'] ?? 0) === 1 ? 1 : 0;
+      $db->prepare('UPDATE Product SET IsActive=? WHERE ID=?')->execute([$nextStatus, $id]);
+      $msg = $nextStatus ? 'Product activated.' : 'Product deactivated.';
+      $msgType = $nextStatus ? 'success' : 'warning';
+    } catch (Exception $e) {
+      $msg = 'Cannot update product status: ' . $e->getMessage();
       $msgType = 'danger';
     }
   }
@@ -71,7 +73,9 @@ if ($catFilt) {
 $whereStr = implode(' AND ', $where);
 
 $products = $db->prepare("
-    SELECT p.*, c.Name AS CategoryName, COALESCE(SUM(s.Quantity),0) AS StockQty
+    SELECT p.*, c.Name AS CategoryName,
+           COALESCE(SUM(s.Quantity), 0) AS StockQty,
+           COALESCE(MAX(s.MinStock), 5) AS MinStock
     FROM Product p
     LEFT JOIN Category c ON p.Category_ID=c.ID
     LEFT JOIN Stock s ON s.Product_ID=p.ID
@@ -79,6 +83,23 @@ $products = $db->prepare("
 ");
 $products->execute($params);
 $products = $products->fetchAll();
+
+$stockAlerts = $db->query("
+    SELECT
+      SUM(stock_qty > 0 AND stock_qty <= min_stock) AS low_stock,
+      SUM(stock_qty = 0) AS out_of_stock
+    FROM (
+      SELECT p.ID,
+             COALESCE(SUM(s.Quantity), 0) AS stock_qty,
+             COALESCE(MAX(s.MinStock), 5) AS min_stock
+      FROM Product p
+      LEFT JOIN Stock s ON s.Product_ID = p.ID
+      WHERE p.IsActive=1
+      GROUP BY p.ID
+    ) product_stock
+")->fetch();
+$lowStockCount = (int)$stockAlerts['low_stock'];
+$outOfStockCount = (int)$stockAlerts['out_of_stock'];
 
 include __DIR__ . '/../includes/header.php';
 ?>
@@ -114,18 +135,19 @@ include __DIR__ . '/../includes/header.php';
           <th>Brand</th>
           <th>Category</th>
           <th>Price</th>
-          <th>Stock</th><?php if ($isAdmin): ?><th>Actions</th><?php endif; ?>
+          <th>Stock</th>
+          <th>Status</th><?php if ($isAdmin): ?><th>Actions</th><?php endif; ?>
         </tr>
       </thead>
       <tbody>
         <?php if (empty($products)): ?>
           <tr>
-            <td colspan="7" style="text-align:center;color:var(--text-muted);padding:30px">No products found.</td>
+            <td colspan="8" style="text-align:center;color:var(--text-muted);padding:30px">No products found.</td>
           </tr>
         <?php endif; ?>
-        <?php foreach ($products as $p): ?>
+        <?php foreach ($products as $index => $p): ?>
           <tr>
-            <td style="color:var(--text-muted)"><?= $p['ID'] ?></td>
+            <td style="color:var(--text-muted)"><?= $index + 1 ?></td>
             <td>
               <div style="font-weight:600"><?= htmlspecialchars($p['Name']) ?></div>
               <?php if ($p['Description']): ?><div class="product-desc-cell"><?= htmlspecialchars($p['Description']) ?></div><?php endif; ?>
@@ -136,20 +158,22 @@ include __DIR__ . '/../includes/header.php';
             <td>
               <?php if ($p['StockQty'] == 0): ?>
                 <span class="badge badge-red">Out of Stock</span>
-              <?php elseif ($p['StockQty'] <= 5): ?>
+              <?php elseif ($p['StockQty'] <= $p['MinStock']): ?>
                 <span class="badge badge-yellow"><?= $p['StockQty'] ?> (Low)</span>
               <?php else: ?>
                 <span class="badge badge-green"><?= $p['StockQty'] ?></span>
               <?php endif; ?>
             </td>
+            <td><span class="badge badge-<?= $p['IsActive'] ? 'green' : 'red' ?>"><?= $p['IsActive'] ? 'Active' : 'Inactive' ?></span></td>
             <?php if ($isAdmin): ?>
               <td style="display:flex;gap:6px">
                 <button class="btn btn-ghost btn-sm" onclick='editProduct(<?= json_encode($p, JSON_HEX_APOS | JSON_HEX_TAG) ?>)'>Edit</button>
                 <form method="POST">
                   <?= csrfField() ?>
-                  <input type="hidden" name="action" value="delete">
+                  <input type="hidden" name="action" value="toggle">
                   <input type="hidden" name="id" value="<?= $p['ID'] ?>">
-                  <button type="button" class="btn btn-danger btn-sm" onclick="confirmDelete('Delete this product? This cannot be undone.',this.closest('form'))">✕</button>
+                  <input type="hidden" name="next_status" value="<?= $p['IsActive'] ? 0 : 1 ?>">
+                  <button type="button" class="btn <?= $p['IsActive'] ? 'btn-danger' : 'btn-ghost' ?> btn-sm" onclick="confirmDelete('<?= $p['IsActive'] ? 'Deactivate' : 'Activate' ?> this product?',this.closest('form'))"><?= $p['IsActive'] ? 'Deactivate' : 'Activate' ?></button>
                 </form>
               </td>
             <?php endif; ?>
@@ -230,5 +254,23 @@ include __DIR__ . '/../includes/header.php';
     document.getElementById('p-desc').value = p.Description || '';
     openModal('product-modal');
   }
+
+  <?php if (($lowStockCount > 0 || $outOfStockCount > 0) && !$msg): ?>
+    document.addEventListener('DOMContentLoaded', function() {
+      setTimeout(function() {
+        if (!window.showSweetAlert) return;
+
+        const parts = [];
+        <?php if ($lowStockCount > 0): ?>
+          parts.push('<?= $lowStockCount ?> product<?= $lowStockCount === 1 ? '' : 's' ?> low on stock');
+        <?php endif; ?>
+        <?php if ($outOfStockCount > 0): ?>
+          parts.push('<?= $outOfStockCount ?> product<?= $outOfStockCount === 1 ? '' : 's' ?> out of stock');
+        <?php endif; ?>
+
+        showSweetAlert('warning', parts.join(' and ') + '.', 'Stock Notice');
+      }, 300);
+    });
+  <?php endif; ?>
 </script>
 <?php include __DIR__ . '/../includes/footer.php'; ?>

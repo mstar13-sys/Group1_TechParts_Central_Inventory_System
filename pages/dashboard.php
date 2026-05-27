@@ -1,13 +1,13 @@
 <?php
-// dashboard.php
-require_once __DIR__ . '/includes/config.php';
+// pages/dashboard.php
+require_once __DIR__ . '/../includes/config.php';
 requireLogin();
 $pageTitle = 'Dashboard';
 $db = getDB();
 
 // Stats
-$totalProducts  = $db->query('SELECT COUNT(*) FROM Product')->fetchColumn();
-$totalStock     = $db->query('SELECT COALESCE(SUM(Quantity),0) FROM Stock')->fetchColumn();
+$totalProducts  = $db->query('SELECT COUNT(*) FROM Product WHERE IsActive=1')->fetchColumn();
+$totalStock     = $db->query('SELECT COALESCE(SUM(s.Quantity),0) FROM Stock s JOIN Product p ON s.Product_ID=p.ID WHERE p.IsActive=1')->fetchColumn();
 $totalSuppliers = $db->query('SELECT COUNT(*) FROM Supplier WHERE IsActive=1')->fetchColumn();
 $todaySales     = $db->query("SELECT COALESCE(SUM(TotalAmount),0) FROM Transaction WHERE DATE(TransactionDate)=CURDATE() AND Status='Completed'")->fetchColumn();
 $monthSales     = $db->query("SELECT COALESCE(SUM(TotalAmount),0) FROM Transaction WHERE YEAR(TransactionDate)=YEAR(CURDATE()) AND MONTH(TransactionDate)=MONTH(CURDATE()) AND Status='Completed'")->fetchColumn();
@@ -23,6 +23,7 @@ $stockAlerts = $db->query("
              COALESCE(MAX(s.MinStock), 5) AS min_stock
       FROM Product p
       LEFT JOIN Stock s ON s.Product_ID = p.ID
+      WHERE p.IsActive=1
       GROUP BY p.ID
     ) product_stock
 ")->fetch();
@@ -41,7 +42,7 @@ $topProducts = $db->query("
     FROM SaleItem si JOIN Product p ON si.Product_ID=p.ID
     GROUP BY p.ID ORDER BY Sold DESC LIMIT 5")->fetchAll();
 
-include __DIR__ . '/includes/header.php';
+include __DIR__ . '/../includes/header.php';
 ?>
 <link rel="stylesheet" href="/css/dashboard.css">
 <?php
@@ -191,4 +192,4 @@ include __DIR__ . '/includes/header.php';
   </div>
 </div>
 
-<?php include __DIR__ . '/includes/footer.php'; ?>
+<?php include __DIR__ . '/../includes/footer.php'; ?>

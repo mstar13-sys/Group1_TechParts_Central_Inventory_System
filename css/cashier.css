@@ -107,6 +107,11 @@
   font-weight: 500;
 }
 
+.cart-item-brand {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
 .cart-item-qty {
   display: flex;
   align-items: center;
@@ -123,6 +128,13 @@
   cursor: pointer;
   font-size: 14px;
   line-height: 1;
+}
+
+.cart-item-count {
+  display: inline-block;
+  min-width: 20px;
+  text-align: center;
+  font-weight: 600;
 }
 
 .cart-item-price {
